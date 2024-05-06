@@ -32,3 +32,15 @@ EmonLibCM based continuous monitoring firmware for the EmonTx4, EmonPi2 and Emon
 - Serial output for direct serial connection (emonPi2) or USB connection (emonTx4/emonTx5).
 - emonPi2 OLED starting message
 - DS18B20 Temperature sensing support on the AVR-DB core.
+
+## [emon_DB_12CT](emon_DB_12CT)
+
+EmonLibDB based continuous monitoring firmware for the EmonTx4, EmonPi2 and EmonTx5. Supports:
+
+- 1-phase or 3-phase voltage, selectable at compilation.
+- 12 CT current sensors, real power & cumulative energy values reported.
+- Option to transmit data over RFM69CW radio (EmonTx4/5).
+- Serial output for direct serial connection (emonPi2) or USB connection (emonTx4/emonTx5).
+- emonPi2 OLED starting message
+
+*DS18B20 temperature sensing and serial configuration is not supported.*
