@@ -179,6 +179,9 @@ const byte DIP_switch2 = PIN_PA5; // Voltage selection 240 / 120 V AC (default s
 const byte LEDpin = PIN_PC2; // emonPi2/Tx5 LED
 #endif
 
+// Used in config.ini
+static void showString (PGM_P s);
+
 //----------------------------------------Setup--------------------------------------------------
 void setup()
 {
@@ -236,41 +239,23 @@ void setup()
     EEProm.iLead[ch] = 3.2;
   }
 
-  // Load config from EEPROM (if any exists)
-  load_config(true);
-
   // Firmware version
   Serial.print(F("emon_DB_6CT_"));
   Serial.print(NUM_V_CHANNELS);
   Serial.print(F("phase V"));
   Serial.write(firmware_version);
-  Serial.println();
   Serial.println(F("OpenEnergyMonitor.org"));
 
-  if (EEProm.rf_on)
-  {
-    Serial.print(F("RFM69CW "));
-    Serial.print(F(" Freq: "));
-    if (EEProm.RF_freq == RF69_433MHZ)
-      Serial.print(F("433MHz"));
-    if (EEProm.RF_freq == RF69_868MHZ)
-      Serial.print(F("868MHz"));
-    if (EEProm.RF_freq == RF69_915MHZ)
-      Serial.print(F("915MHz"));
-    Serial.print(F(" Group: "));
-    Serial.print(EEProm.networkGroup);
-    Serial.print(F(" Node: "));
-    Serial.print(EEProm.nodeID);
-    Serial.println(F(" "));
-
 #ifdef RFM69_LOW_POWER_LABS
-    Serial.println("RadioFormat: LowPowerLabs");
+  Serial.println("RadioFormat: LowPowerLabs");
 #elif defined(RFM69_JEELIB_CLASSIC)
-    Serial.println("RadioFormat: JeeLib Classic");
+  Serial.println("RadioFormat: JeeLib Classic");
 #elif defined(RFM69_JEELIB_NATIVE)
-    Serial.println("RadioFormat: JeeLib Native");
+  Serial.println("RadioFormat: JeeLib Native");
 #endif
-  }
+
+  // Load config from EEPROM (if any exists)
+  load_config(true);
 
 #ifdef EMONTX4
   // Sets expected frequency 50Hz/60Hz
