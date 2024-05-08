@@ -202,6 +202,9 @@ const byte DIP_switch2 = PIN_PA5; // Voltage selection 240 / 120 V AC (default s
 const byte LEDpin = PIN_PC2; // emonPi2/Tx5 LED
 #endif
 
+// Used in config.ini
+static void showString (PGM_P s);
+
 //----------------------------------------Setup--------------------------------------------------
 void setup()
 {
@@ -213,11 +216,14 @@ void setup()
 
   // Serial
   Serial.begin(115200);
+  print_firmware_version();
+  Serial.println(F("OpenEnergyMonitor.org"));
 
 // OLED display
 // Very simple starting message and then
 // control is passed to the Raspberry Pi
 #ifdef EMONPI2
+  Serial.println(F("Starting emonPi2 OLED"));
   delay(1000);
   Wire1.swap(2);
   Wire1.begin();
@@ -239,6 +245,7 @@ void setup()
 
   pinMode(PIN_PB2, INPUT);
   pinMode(PIN_PB3, INPUT);
+
 #endif
 
 // EmonTx4 DIP switch settings
@@ -264,37 +271,6 @@ void setup()
 
   // Load config from EEPROM (if any exists)
   load_config(true);
-
-  // Firmware version
-  Serial.print(F("emon_CM_6CT_temperature V"));
-  Serial.write(firmware_version);
-  Serial.println();
-  Serial.println(F("OpenEnergyMonitor.org"));
-
-  if (EEProm.rf_on)
-  {
-    Serial.print(F("RFM69CW "));
-    Serial.print(F(" Freq: "));
-    if (EEProm.RF_freq == RF69_433MHZ)
-      Serial.print(F("433MHz"));
-    if (EEProm.RF_freq == RF69_868MHZ)
-      Serial.print(F("868MHz"));
-    if (EEProm.RF_freq == RF69_915MHZ)
-      Serial.print(F("915MHz"));
-    Serial.print(F(" Group: "));
-    Serial.print(EEProm.networkGroup);
-    Serial.print(F(" Node: "));
-    Serial.print(EEProm.nodeID);
-    Serial.println(F(" "));
-
-#ifdef RFM69_LOW_POWER_LABS
-    Serial.println("RadioFormat: LowPowerLabs");
-#elif defined(RFM69_JEELIB_CLASSIC)
-    Serial.println("RadioFormat: JeeLib Classic");
-#elif defined(RFM69_JEELIB_NATIVE)
-    Serial.println("RadioFormat: JeeLib Native");
-#endif
-  }
 
 #ifdef EMONTX4
   // Sets expected frequency 50Hz/60Hz
@@ -738,4 +714,32 @@ double read_reference()
   double mean = sum / 10000.0;
   double reference = 0.9 / (mean / 4095.0);
   return reference;
+}
+
+void print_firmware_version() {
+
+  // Firmware version
+#ifdef EMONTX4
+  Serial.print(F("emonTx4"));
+#endif
+#ifdef EMONPI2
+  Serial.print(F("emonPi2"));
+#endif
+#ifdef EMONTX5
+  Serial.print(F("emonTx5"));
+#endif
+  Serial.print(F("_CM_6CT_temperature v"));
+  
+  Serial.write(firmware_version);
+
+#ifndef EMONPI2
+#ifdef RFM69_LOW_POWER_LABS
+  Serial.println("RadioFormat: LowPowerLabs");
+#elif defined(RFM69_JEELIB_CLASSIC)
+  Serial.println("RadioFormat: JeeLib Classic");
+#elif defined(RFM69_JEELIB_NATIVE)
+  Serial.println("RadioFormat: JeeLib Native");
+#endif
+#endif
+
 }

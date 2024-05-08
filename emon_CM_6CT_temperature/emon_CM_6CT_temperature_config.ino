@@ -72,14 +72,17 @@ static void load_config(bool verbose)
 
 static void list_calibration(void)
 {
-  Serial.println(F("Settings:"));
-  Serial.print(F("Band ")); 
-  Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
-               EEProm.RF_freq == RF69_868MHZ ? 868 :
-               EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
-  Serial.print(F(" MHz, Group ")); Serial.print(EEProm.networkGroup);
-  Serial.print(F(", Node ")); Serial.print(EEProm.nodeID & 0x3F);
-  Serial.print(F(", "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
+  if (EEProm.rf_on) {
+    Serial.println(F("Settings:"));
+    Serial.print(F("Band ")); 
+    Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
+                 EEProm.RF_freq == RF69_868MHZ ? 868 :
+                 EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
+    Serial.print(F(" MHz, Group ")); Serial.print(EEProm.networkGroup);
+    Serial.print(F(", Node ")); Serial.print(EEProm.nodeID & 0x3F);
+    Serial.print(F(", "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
+  }
+  
   Serial.println(F("Calibration:"));
   Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
   Serial.print(F("assumedV = ")); Serial.println(EEProm.assumedVrms);
@@ -346,22 +349,21 @@ void handle_conf(char *input, byte len) {
       EEProm.pulse_period = k2;
       
       if (PULSE_PIN==1) {
-        Serial.print(F("Pulse: ")); 
+        Serial.print(F("Pulse: "));
       } else if (PULSE_PIN==2) {
-        Serial.print(F("Pulse on digital: ")); 
+        Serial.print(F("Pulse on digital: "));
       } else if (PULSE_PIN==3) {
-        Serial.print(F("Pulse on analog: ")); 
+        Serial.print(F("Pulse on analog: "));
       }
-    
+      
       if (EEProm.pulse_enable) {
         Serial.print(F("enabled"));
-    
         Serial.print(F(", min period: "));
         Serial.print(EEProm.pulse_period);
         Serial.println(F("ms"));
       } else {
         Serial.println(F("disabled"));
-      }  
+      }
       break;
       
     case 'i':  
@@ -403,7 +405,7 @@ void handle_conf(char *input, byte len) {
 
     case 'v': // print firmware version
       if (len==1) {
-        Serial.print(F("emon_CM_6CT_temperature V")); Serial.write(firmware_version);
+        print_firmware_version();
       }
       break;
     

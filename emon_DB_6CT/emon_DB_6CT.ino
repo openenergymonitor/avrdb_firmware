@@ -51,7 +51,7 @@ const char *firmware_version = {"2.1.0\n\r"};
 
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
-#define EMONPI2
+#define EMONTX5
 
 // 2. Set radio format
 // Options: RFM69_JEELIB_CLASSIC, RFM69_JEELIB_NATIVE, RFM69_LOW_POWER_LABS
