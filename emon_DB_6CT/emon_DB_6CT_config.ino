@@ -305,22 +305,21 @@ void handle_conf(char *input, byte len) {
       EEProm.pulse_period = k2;
       
       if (PULSE_PIN==1) {
-        Serial.print(F("Pulse: ")); 
+        Serial.print(F("Pulse: "));
       } else if (PULSE_PIN==2) {
-        Serial.print(F("Pulse on digital: ")); 
+        Serial.print(F("Pulse on digital: "));
       } else if (PULSE_PIN==3) {
-        Serial.print(F("Pulse on analog: ")); 
+        Serial.print(F("Pulse on analog: "));
       }
-    
+      
       if (EEProm.pulse_enable) {
         Serial.print(F("enabled"));
-    
         Serial.print(F(", min period: "));
         Serial.print(EEProm.pulse_period);
         Serial.println(F("ms"));
       } else {
         Serial.println(F("disabled"));
-      }  
+      }
       break;
       
     case 'i':  
@@ -350,7 +349,7 @@ void handle_conf(char *input, byte len) {
 
     case 'v': // print firmware version
       if (len==1) {
-        Serial.print(F("emon_DB_6CT V")); Serial.write(firmware_version);
+        print_firmware_version();
       }
       break;
     

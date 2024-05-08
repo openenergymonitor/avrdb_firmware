@@ -51,7 +51,7 @@ const char *firmware_version = {"2.1.0\n\r"};
 
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
-#define EMONTX5
+#define EMONPI2
 
 // 2. Set radio format
 // Options: RFM69_JEELIB_CLASSIC, RFM69_JEELIB_NATIVE, RFM69_LOW_POWER_LABS
@@ -193,11 +193,14 @@ void setup()
 
   // Serial
   Serial.begin(115200);
+  print_firmware_version();
+  Serial.println(F("OpenEnergyMonitor.org"));
 
 // OLED display
 // Very simple starting message and then
 // control is passed to the Raspberry Pi
 #ifdef EMONPI2
+  Serial.println(F("Starting emonPi2 OLED"));
   delay(1000);
   Wire1.swap(2);
   Wire1.begin();
@@ -219,6 +222,7 @@ void setup()
 
   pinMode(PIN_PB2, INPUT);
   pinMode(PIN_PB3, INPUT);
+
 #endif
 
 // EmonTx4 DIP switch settings
@@ -238,21 +242,6 @@ void setup()
     EEProm.iCal[ch] = 20.0;
     EEProm.iLead[ch] = 3.2;
   }
-
-  // Firmware version
-  Serial.print(F("emon_DB_6CT_"));
-  Serial.print(NUM_V_CHANNELS);
-  Serial.print(F("phase V"));
-  Serial.write(firmware_version);
-  Serial.println(F("OpenEnergyMonitor.org"));
-
-#ifdef RFM69_LOW_POWER_LABS
-  Serial.println("RadioFormat: LowPowerLabs");
-#elif defined(RFM69_JEELIB_CLASSIC)
-  Serial.println("RadioFormat: JeeLib Classic");
-#elif defined(RFM69_JEELIB_NATIVE)
-  Serial.println("RadioFormat: JeeLib Native");
-#endif
 
   // Load config from EEPROM (if any exists)
   load_config(true);
@@ -624,4 +613,34 @@ double read_reference()
   double mean = sum / 10000.0;
   double reference = 0.9 / (mean / 4095.0);
   return reference;
+}
+
+void print_firmware_version() {
+
+  // Firmware version
+#ifdef EMONTX4
+  Serial.print(F("emonTx4"));
+#endif
+#ifdef EMONPI2
+  Serial.print(F("emonPi2"));
+#endif
+#ifdef EMONTX5
+  Serial.print(F("emonTx5"));
+#endif
+  Serial.print(F("_DB_6CT_"));
+  Serial.print(NUM_V_CHANNELS);
+  Serial.print(F("phase v"));
+  
+  Serial.write(firmware_version);
+
+#ifndef EMONPI2
+#ifdef RFM69_LOW_POWER_LABS
+  Serial.println("RadioFormat: LowPowerLabs");
+#elif defined(RFM69_JEELIB_CLASSIC)
+  Serial.println("RadioFormat: JeeLib Classic");
+#elif defined(RFM69_JEELIB_NATIVE)
+  Serial.println("RadioFormat: JeeLib Native");
+#endif
+#endif
+
 }
