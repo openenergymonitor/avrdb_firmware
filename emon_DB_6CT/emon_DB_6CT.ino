@@ -269,6 +269,7 @@ void setup()
     rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
 #endif
 #endif
+
     rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
     rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
     delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
@@ -281,7 +282,7 @@ void setup()
 #endif
 
   double reference = read_reference();
-  Serial.print(F("Reference voltage calibration: "));
+  Serial.print(F("Reference voltage calibration = "));
   Serial.println(reference, 4);
 
   // Apply voltage and current channel calibration
@@ -339,32 +340,6 @@ void setup()
   // Make sure appropriate solder link is made on the hardware and related TMP link is broken
   // The 'Analogue' input is not available if an extender card is fitted
   
-  if (PULSE_PIN == 1)
-  {
-    Serial.print(F("Pulse: "));
-  }
-  else if (PULSE_PIN == 2)
-  {
-    Serial.print(F("Pulse on digital: "));
-  }
-  else if (PULSE_PIN == 3)
-  {
-    Serial.print(F("Pulse on analog: "));
-  }
-
-  if (EEProm.pulse_enable)
-  {
-    Serial.print(F("enabled"));
-
-    Serial.print(F(", min period: "));
-    Serial.print(EEProm.pulse_period);
-    Serial.println(F("ms"));
-  }
-  else
-  {
-    Serial.println(F("disabled"));
-  }
-
   EmonLibDB_setPulseEnable(PULSE_PIN, EEProm.pulse_enable);
   EmonLibDB_setPulseMinPeriod(PULSE_PIN, EEProm.pulse_period, FALLING); // Trigger on the falling edge
 
@@ -495,9 +470,11 @@ void loop()
       }
 #endif
 
-      // Pulse counting
-      Serial.print(F(",\"pulse\":"));
-      Serial.print(emon.pulse);
+      if (EEProm.pulse_enable) {
+        // Pulse counting
+        Serial.print(F(",\"pulse\":"));
+        Serial.print(emon.pulse);
+      }
 
 // Analog reading
 #ifdef ENABLE_ANALOG
@@ -542,9 +519,11 @@ void loop()
       }
 #endif
 
-      // Pulse counting
-      Serial.print(F(",pulse:"));
-      Serial.print(emon.pulse);
+      if (EEProm.pulse_enable) {
+        // Pulse counting
+        Serial.print(F(",pulse:"));
+        Serial.print(emon.pulse);
+      }
 
 // Analog reading
 #ifdef ENABLE_ANALOG
@@ -574,6 +553,7 @@ void loop()
           Serial.print(":");
           Serial.print(EmonLibDB_getPF(ch + 1), 4);
         }
+        Serial.println();
         delay(80);
       }
     }
@@ -632,15 +612,4 @@ void print_firmware_version() {
   Serial.print(F("phase v"));
   
   Serial.write(firmware_version);
-
-#ifndef EMONPI2
-#ifdef RFM69_LOW_POWER_LABS
-  Serial.println("RadioFormat: LowPowerLabs");
-#elif defined(RFM69_JEELIB_CLASSIC)
-  Serial.println("RadioFormat: JeeLib Classic");
-#elif defined(RFM69_JEELIB_NATIVE)
-  Serial.println("RadioFormat: JeeLib Native");
-#endif
-#endif
-
 }

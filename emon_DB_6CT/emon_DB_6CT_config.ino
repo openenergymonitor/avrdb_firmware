@@ -38,7 +38,6 @@ const PROGMEM char helpText1[] =
 "\t\t  zz.z = a floating point number for the phase calibration for this c.t. (z is not needed, or ignored if supplied, when x = 0)\n"
 "\t\t  e.g. k0 256.8\n"
 "\t\t       k1 90.9 2.00\n"
-"a<xx.x>\t- xx.x = a floating point number for the assumed voltage if no a.c. is detected\n"
 "m<x> <yy>\t- meter pulse counting:\n"
 "\t\t   x = 0 for OFF, x = 1 for ON, <yy> = an integer for the pulse minimum period in ms. (y is not needed, or ignored when x = 0)\n"
 ;
@@ -62,28 +61,63 @@ static void load_config(bool verbose)
 
 static void list_calibration(void)
 {
+  Serial.println(F("Settings:"));
+  Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
+  for (byte ch=0; ch<NUM_I_CHANNELS; ch++) {
+    Serial.print(F("iCal")); Serial.print(ch+1); Serial.print(" = "); Serial.print(EEProm.iCal[ch]);
+    Serial.print(F(", iLead")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iLead[ch]);
+  }
+  
+  print_pulse_setting();
+  print_radio_setting();
+
+  Serial.print(F("datalog = ")); Serial.println(EEProm.period);
+  
+  Serial.println(EEProm.json_enabled ? F("json = on"):F("json = off"));
+}
+
+void print_radio_setting() {
   if (EEProm.rf_on) {
-    Serial.println(F("Settings:"));
-    Serial.print(F("Band ")); 
+    Serial.print(F("RF = on, band = ")); 
     Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
                  EEProm.RF_freq == RF69_868MHZ ? 868 :
                  EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
-    Serial.print(F(" MHz, Group ")); Serial.print(EEProm.networkGroup);
-    Serial.print(F(", Node ")); Serial.print(EEProm.nodeID & 0x3F);
-    Serial.print(F(", "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
+    Serial.print(F(" MHz, group = ")); Serial.print(EEProm.networkGroup);
+    Serial.print(F(", node = ")); Serial.print(EEProm.nodeID & 0x3F);
+    Serial.print(F(", power = ")); Serial.print(EEProm.rfPower);
+
+    Serial.print(F(", format = "));
+    #ifdef RFM69_LOW_POWER_LABS
+      Serial.println(F("LowPowerLabs"));
+    #elif defined(RFM69_JEELIB_CLASSIC)
+      Serial.println(F("JeeLib Classic"));
+    #elif defined(RFM69_JEELIB_NATIVE)
+      Serial.println(F("JeeLib Native"));
+    #endif
+    
+  } else {
+    Serial.println(F("RF = off"));
   }
-  
-  Serial.println(F("Calibration:"));
-  Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
-  for (byte ch=0; ch<NUM_I_CHANNELS; ch++) {
-    Serial.print(F("iCal")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iCal[ch]);
-    Serial.print(F("iLead")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iLead[ch]);
+
+}
+
+void print_pulse_setting() {
+  Serial.print(F("pulse = "));
+  if (EEProm.pulse_enable)
+  {
+    Serial.print(PULSE_PIN);
+    if (PULSE_PIN == 3)
+    {
+      Serial.print(F(" (analog)"));
+    }
+    Serial.print(F(", min period = "));
+    Serial.print(EEProm.pulse_period);
+    Serial.println(F("ms"));
   }
-  Serial.print(F("datalog = ")); Serial.println(EEProm.period);
-  Serial.print(F("pulses = ")); Serial.println(EEProm.pulse_enable);
-  Serial.print(F("pulse period = ")); Serial.println(EEProm.pulse_period);
-  Serial.println(EEProm.rf_on ? F("RF on"):F("RF off"));
-  Serial.println(EEProm.json_enabled ? F("JSON Format on"):F("JSON Format Off"));
+  else
+  {
+    Serial.println(F("off"));
+  }
 }
 
 static void save_config()
@@ -307,22 +341,7 @@ void handle_conf(char *input, byte len) {
       EmonLibDB_setPulseMinPeriod(PULSE_PIN, k2);
       EEProm.pulse_period = k2;
       
-      if (PULSE_PIN==1) {
-        Serial.print(F("Pulse: "));
-      } else if (PULSE_PIN==2) {
-        Serial.print(F("Pulse on digital: "));
-      } else if (PULSE_PIN==3) {
-        Serial.print(F("Pulse on analog: "));
-      }
-      
-      if (EEProm.pulse_enable) {
-        Serial.print(F("enabled"));
-        Serial.print(F(", min period: "));
-        Serial.print(EEProm.pulse_period);
-        Serial.println(F("ms"));
-      } else {
-        Serial.println(F("disabled"));
-      }
+      print_pulse_setting();
       break;
       
     case 'i':  
