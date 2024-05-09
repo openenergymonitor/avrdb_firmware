@@ -61,7 +61,6 @@ static void load_config(bool verbose)
 
 static void list_calibration(void)
 {
-  Serial.println(F("Settings:"));
   Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
   for (byte ch=0; ch<NUM_I_CHANNELS; ch++) {
     Serial.print(F("iCal")); Serial.print(ch+1); Serial.print(" = "); Serial.print(EEProm.iCal[ch]);
@@ -78,15 +77,15 @@ static void list_calibration(void)
 
 void print_radio_setting() {
   if (EEProm.rf_on) {
-    Serial.print(F("RF = on, band = ")); 
+    Serial.print(F("RF = on, rfBand = ")); 
     Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
                  EEProm.RF_freq == RF69_868MHZ ? 868 :
                  EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
-    Serial.print(F(" MHz, group = ")); Serial.print(EEProm.networkGroup);
-    Serial.print(F(", node = ")); Serial.print(EEProm.nodeID & 0x3F);
-    Serial.print(F(", power = ")); Serial.print(EEProm.rfPower);
+    Serial.print(F(" MHz, rfGroup = ")); Serial.print(EEProm.networkGroup);
+    Serial.print(F(", rfNode = ")); Serial.print(EEProm.nodeID & 0x3F);
+    Serial.print(F(", rfPower = ")); Serial.print(EEProm.rfPower);
 
-    Serial.print(F(", format = "));
+    Serial.print(F(", rfFormat = "));
     #ifdef RFM69_LOW_POWER_LABS
       Serial.println(F("LowPowerLabs"));
     #elif defined(RFM69_JEELIB_CLASSIC)
@@ -106,11 +105,7 @@ void print_pulse_setting() {
   if (EEProm.pulse_enable)
   {
     Serial.print(PULSE_PIN);
-    if (PULSE_PIN == 3)
-    {
-      Serial.print(F(" (analog)"));
-    }
-    Serial.print(F(", min period = "));
+    Serial.print(F(", pulsePeriod = "));
     Serial.print(EEProm.pulse_period);
     Serial.println(F("ms"));
   }
@@ -308,6 +303,7 @@ void handle_conf(char *input, byte len) {
         
     case 'l':
       if (len==1) {
+        print_firmware_version();
         list_calibration(); // print the settings & calibration values
       }
       break;

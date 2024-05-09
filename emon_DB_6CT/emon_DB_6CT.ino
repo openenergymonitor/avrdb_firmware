@@ -194,7 +194,6 @@ void setup()
   // Serial
   Serial.begin(115200);
   print_firmware_version();
-  Serial.println(F("OpenEnergyMonitor.org"));
 
 // OLED display
 // Very simple starting message and then
@@ -282,7 +281,7 @@ void setup()
 #endif
 
   double reference = read_reference();
-  Serial.print(F("Reference voltage calibration = "));
+  Serial.print(F("vrefa = "));
   Serial.println(reference, 4);
 
   // Apply voltage and current channel calibration
@@ -597,19 +596,23 @@ double read_reference()
 
 void print_firmware_version() {
 
-  // Firmware version
+  Serial.println(F("firmware = emon_DB_6CT"));
+  Serial.print(F("version = "));
+  Serial.write(firmware_version);
+
+  Serial.print(F("hardware = "));
+
 #ifdef EMONTX4
-  Serial.print(F("emonTx4"));
+  Serial.println(F("emonTx4"));
 #endif
 #ifdef EMONPI2
-  Serial.print(F("emonPi2"));
+  Serial.println(F("emonPi2"));
 #endif
 #ifdef EMONTX5
-  Serial.print(F("emonTx5"));
+  Serial.println(F("emonTx5"));
 #endif
-  Serial.print(F("_DB_6CT_"));
+  Serial.print(F("voltage = "));
+
   Serial.print(NUM_V_CHANNELS);
-  Serial.print(F("phase v"));
-  
-  Serial.write(firmware_version);
+  Serial.println(F("phase"));
 }
