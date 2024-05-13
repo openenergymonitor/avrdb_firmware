@@ -179,10 +179,13 @@ void handle_conf(char *input, byte len) {
     case 'b':  // set band: 4 = 433, 8 = 868, 9 = 915
       if (len==2) {
         EEProm.RF_freq = bandToFreq(atoi(input+1));
+
+        Serial.print(F("rfBand = ")); 
         Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
                      EEProm.RF_freq == RF69_868MHZ ? 868 :
                      EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
         Serial.println(F(" MHz"));
+        
       }
       break;
     case 'c':
@@ -209,6 +212,8 @@ void handle_conf(char *input, byte len) {
             break;
           default: EEProm.json_enabled = false;
         }
+
+        Serial.println(EEProm.json_enabled ? F("json = on"):F("json = off"));
       }
       break;
     case 'd':
@@ -220,7 +225,7 @@ void handle_conf(char *input, byte len) {
       k2 = atof(input+1);
       EmonLibDB_datalogPeriod(k2); 
       EEProm.period = k2;
-      Serial.print(F("datalog period: ")); Serial.print(k2);Serial.println(F(" s"));
+      Serial.print(F("datalog = ")); Serial.println(k2);
       break;
     case 'e':
       input[len] = '\n';
@@ -233,13 +238,13 @@ void handle_conf(char *input, byte len) {
       if (len==3) {
         k1 = atof(input+1);
         EmonLibDB_cyclesPerSecond(k1);
-        Serial.print(F("Freq: "));Serial.println(k1);
+        Serial.print(F("freq = "));Serial.println(k1);
       }
       break;
     
     case 'g':  // set network group
       EEProm.networkGroup = atoi(input+1);
-      Serial.print(F("Group ")); Serial.println(EEProm.networkGroup);
+      Serial.print(F("rfGroup = ")); Serial.println(EEProm.networkGroup);
       break;
       
     /* case 'i' below */
@@ -292,13 +297,14 @@ void handle_conf(char *input, byte len) {
           EmonLibDB_reCalibrate_vInput(ch+1, k2, 0.16);
         }
         EEProm.vCal = k2;
+        Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
       } else {
         EmonLibDB_reCalibrate_cInput(k1, k2, k3);
         EEProm.iCal[k1-1] = k2;
         EEProm.iLead[k1-1] = k3;
-      }
-      
-      Serial.print(F("Cal: k"));Serial.print(k1);Serial.print(F(" "));Serial.print(k2);Serial.print(F(" "));Serial.println(k3);        
+        Serial.print(F("iCal")); Serial.print(k1); Serial.print(" = "); Serial.print(EEProm.iCal[k1-1]);
+        Serial.print(F(", iLead")); Serial.print(k1); Serial.print(" = "); Serial.println(EEProm.iLead[k1-1]);
+      }      
       break;
         
     case 'l':
@@ -344,12 +350,12 @@ void handle_conf(char *input, byte len) {
     case 'n':  //  Set NodeID - range expected: 1 - 60
       EEProm.nodeID = atoi(input+1);
       EEProm.nodeID = constrain(EEProm.nodeID, 1, 63);
-      Serial.print(F("Node ")); Serial.println(EEProm.nodeID);
+      Serial.print(F("rfNode = ")); Serial.println(EEProm.nodeID);
       break;
 
     case 'p': // set RF power level
       EEProm.rfPower = (atoi(input+1) & 0x1F);
-      Serial.print(F("p = "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
+      Serial.print(F("rfPower = ")); Serial.println(EEProm.rfPower);
       break;
       
     case 'r': // restore sketch defaults
