@@ -377,14 +377,14 @@ void handle_conf(char *input, byte len) {
       if (len==2) {
         EEProm.rf_on = 0;
         if (input[1]=='1') EEProm.rf_on = 1;
-        Serial.println(EEProm.rf_on ? F("RF on"):F("RF off"));
+        print_radio_setting();
       }
       break;
       
     case 'x':  // exit and continue
       if (len==1) {
         Serial.println(F("Continuing..."));
-        calibration_enable = false;
+        // calibration_enable = false;
       }
       return;
 
