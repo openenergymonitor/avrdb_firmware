@@ -388,9 +388,10 @@ void handle_conf(char *input, byte len) {
        */
       if (len==2) {
         EEProm.temp_enable = 0;
-        if (input[1]=='1') EEProm.temp_enable = 1;
-        EmonLibCM_TemperatureEnable(EEProm.temp_enable);
-        Serial.println(EEProm.temp_enable ? F("temp_enable = 1"):F("temp_enable = 0"));
+        if (input[1]=='1') {
+          EEProm.temp_enable = 1;
+        }
+        init_temperature();
       }
       // set_temperatures();
       break;
@@ -406,7 +407,10 @@ void handle_conf(char *input, byte len) {
        */
       if (len==2) {
         EEProm.rf_on = 0;
-        if (input[1]=='1') EEProm.rf_on = 1;
+        if (input[1]=='1') {
+          EEProm.rf_on = 1;
+          init_radio();
+        }
         print_radio_setting();
       }
       break;

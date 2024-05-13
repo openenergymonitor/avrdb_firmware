@@ -282,25 +282,7 @@ void setup()
 #endif
   // ---------------------------------------------------------------------------------------
 
-  if (EEProm.rf_on)
-  {
-#ifdef RFM69_JEELIB_CLASSIC
-    rf.format(RFM69_JEELIB_CLASSIC);
-#endif
-
-// Frequency is currently hardcoded to 433Mhz in library
-#ifdef RFM69_LOW_POWER_LABS
-#ifdef EMONTX4
-    rf.setPins(PIN_PB5, PIN_PC0, PIN_PC1, PIN_PC2);
-#else
-    rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
-#endif
-#endif
-
-    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
-    rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
-    delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
-  }
+  init_radio();
 
   // ---------------------------------------------------------------------------------------
 
@@ -405,28 +387,11 @@ void setup()
   EVmem.dump_buffer();
 #endif
 
-  EmonLibCM_TemperatureEnable(EEProm.temp_enable);
+  init_temperature();
+  
   EmonLibCM_Init(); // Start continuous monitoring.
   emon.Msg = 0;
 
-  if (EEProm.temp_enable)
-  {
-    printTemperatureSensorAddresses();
-
-    byte numSensors = EmonLibCM_getTemperatureSensorCount();
-    if (numSensors == 0)
-    {
-      Serial.println(F("No temperature sensors detected, disabling temperature"));
-      Serial.println(F("temp_enable = 0"));
-      EmonLibCM_TemperatureEnable(false);
-      temp_enable = false;
-    }
-    else
-    {
-      Serial.println(F("temp_enable = 1"));
-      temp_enable = true;
-    }
-  }
   // Speed up startup by making first reading 2s
   EmonLibCM_datalog_period(2.0);
 }
@@ -478,11 +443,13 @@ void loop()
 #endif
     }
 
-    if (temp_enable)
+    for (byte ch = 0; ch < MAX_TEMPS; ch++)
     {
-      for (byte ch = 0; ch < MAX_TEMPS; ch++)
+      if (temp_enable)
       {
         emon.T[ch] = allTemps[ch];
+      } else {
+        emon.T[ch] = 30000;
       }
     }
 
@@ -729,4 +696,52 @@ void print_firmware_version() {
   Serial.println(F("emonTx5"));
 #endif
   Serial.println(F("voltage = 1phase"));
+}
+
+void init_radio() {
+  if (EEProm.rf_on)
+  {
+#ifdef RFM69_JEELIB_CLASSIC
+    rf.format(RFM69_JEELIB_CLASSIC);
+#endif
+
+// Frequency is currently hardcoded to 433Mhz in library
+#ifdef RFM69_LOW_POWER_LABS
+#ifdef EMONTX4
+    rf.setPins(PIN_PB5, PIN_PC0, PIN_PC1, PIN_PC2);
+#else
+    rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
+#endif
+#endif
+
+    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
+    rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
+    delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
+  }
+}
+
+void init_temperature() {
+  EmonLibCM_TemperatureEnable(EEProm.temp_enable);
+  delay(100);
+  if (EEProm.temp_enable)
+  {
+    printTemperatureSensorAddresses();
+
+    byte numSensors = EmonLibCM_getTemperatureSensorCount();
+    if (numSensors == 0)
+    {
+      Serial.println(F("No temperature sensors detected, disabling temperature"));
+      Serial.println(F("temp_enable = 0"));
+      EmonLibCM_TemperatureEnable(false);
+      temp_enable = false;
+    }
+    else
+    {
+      Serial.println(F("temp_enable = 1"));
+      temp_enable = true;
+    }
+  } else {
+    Serial.println(F("temp_enable = 0"));
+    temp_enable = false;
+  }
 }
