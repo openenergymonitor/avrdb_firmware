@@ -478,7 +478,7 @@ void loop()
 // Analog reading
 #ifdef ENABLE_ANALOG
       Serial.print(F(",\"analog\":"));
-      Serial.print(analog);
+      Serial.print(emon.analog);
 #endif
 
       Serial.println(F("}"));
@@ -527,7 +527,7 @@ void loop()
 // Analog reading
 #ifdef ENABLE_ANALOG
       Serial.print(F(",analog:"));
-      Serial.print(analog);
+      Serial.print(emon.analog);
 #endif
 
       if (!EEProm.showCurrents)
