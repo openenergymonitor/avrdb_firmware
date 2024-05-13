@@ -217,7 +217,6 @@ void setup()
   // Serial
   Serial.begin(115200);
   print_firmware_version();
-  Serial.println(F("OpenEnergyMonitor.org"));
 
 // OLED display
 // Very simple starting message and then
@@ -295,6 +294,7 @@ void setup()
     rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
 #endif
 #endif
+
     rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
     rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
     delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
@@ -307,7 +307,7 @@ void setup()
 #endif
 
   double reference = read_reference();
-  Serial.print(F("Reference voltage calibration: "));
+  Serial.print(F("vrefa = "));
   Serial.println(reference, 4);
 
   // 12 bit ADC = 4096 divisions
@@ -348,7 +348,6 @@ void setup()
   
   if (PULSE_PIN == 1)
   {
-    Serial.print(F("Pulse: "));
 #ifdef EMONTX4
     EmonLibCM_setPulsePin(PIN_PA6); // Standard pulse input
 #else
@@ -357,7 +356,6 @@ void setup()
   }
   else if (PULSE_PIN == 2)
   {
-    Serial.print(F("Pulse on digital: "));
 #ifdef EMONTX4
     EmonLibCM_setPulsePin(PIN_PA7); // Second digital input
 #else
@@ -366,21 +364,7 @@ void setup()
   }
   else if (PULSE_PIN == 3)
   {
-    Serial.print(F("Pulse on analog: "));
     EmonLibCM_setPulsePin(PIN_PF3); // Pulse on analog
-  }
-
-  if (EEProm.pulse_enable)
-  {
-    Serial.print(F("enabled"));
-
-    Serial.print(F(", min period: "));
-    Serial.print(EEProm.pulse_period);
-    Serial.println(F("ms"));
-  }
-  else
-  {
-    Serial.println(F("disabled"));
   }
 
   EmonLibCM_setPulseEnable(EEProm.pulse_enable);
@@ -431,11 +415,13 @@ void setup()
     if (numSensors == 0)
     {
       Serial.println(F("No temperature sensors detected, disabling temperature"));
+      Serial.println(F("temp_enable = 0"));
       EmonLibCM_TemperatureEnable(false);
       temp_enable = false;
     }
     else
     {
+      Serial.println(F("temp_enable = 1"));
       temp_enable = true;
     }
   }
@@ -579,8 +565,11 @@ void loop()
         }
       }
 
-      Serial.print(F(",\"pulse\":"));
-      Serial.print(emon.pulse);
+      if (EEProm.pulse_enable) {
+        // Pulse counting
+        Serial.print(F(",\"pulse\":"));
+        Serial.print(emon.pulse);
+      }
 
 // Analog reading
 #ifdef ENABLE_ANALOG
@@ -644,8 +633,11 @@ void loop()
         }
       }
 
-      Serial.print(F(",pulse:"));
-      Serial.print(emon.pulse);
+      if (EEProm.pulse_enable) {
+        // Pulse counting
+        Serial.print(F(",pulse:"));
+        Serial.print(emon.pulse);
+      }
 
 // Analog reading
 #ifdef ENABLE_ANALOG
@@ -675,6 +667,7 @@ void loop()
           Serial.print(":");
           Serial.print(EmonLibCM_getPF(EmonLibCM_getLogicalChannel(ch + 1)), 4);
         }
+        Serial.println();
         delay(80);
       }
     }
@@ -718,28 +711,20 @@ double read_reference()
 
 void print_firmware_version() {
 
-  // Firmware version
-#ifdef EMONTX4
-  Serial.print(F("emonTx4"));
-#endif
-#ifdef EMONPI2
-  Serial.print(F("emonPi2"));
-#endif
-#ifdef EMONTX5
-  Serial.print(F("emonTx5"));
-#endif
-  Serial.print(F("_CM_6CT_temperature v"));
-  
+  Serial.println(F("firmware = emon_CM_6CT_temperature"));
+  Serial.print(F("version = "));
   Serial.write(firmware_version);
 
-#ifndef EMONPI2
-#ifdef RFM69_LOW_POWER_LABS
-  Serial.println("RadioFormat: LowPowerLabs");
-#elif defined(RFM69_JEELIB_CLASSIC)
-  Serial.println("RadioFormat: JeeLib Classic");
-#elif defined(RFM69_JEELIB_NATIVE)
-  Serial.println("RadioFormat: JeeLib Native");
-#endif
-#endif
+  Serial.print(F("hardware = "));
 
+#ifdef EMONTX4
+  Serial.println(F("emonTx4"));
+#endif
+#ifdef EMONPI2
+  Serial.println(F("emonPi2"));
+#endif
+#ifdef EMONTX5
+  Serial.println(F("emonTx5"));
+#endif
+  Serial.println(F("voltage = 1phase"));
 }

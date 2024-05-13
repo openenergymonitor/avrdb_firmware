@@ -72,30 +72,60 @@ static void load_config(bool verbose)
 
 static void list_calibration(void)
 {
-  if (EEProm.rf_on) {
-    Serial.println(F("Settings:"));
-    Serial.print(F("Band ")); 
-    Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
-                 EEProm.RF_freq == RF69_868MHZ ? 868 :
-                 EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
-    Serial.print(F(" MHz, Group ")); Serial.print(EEProm.networkGroup);
-    Serial.print(F(", Node ")); Serial.print(EEProm.nodeID & 0x3F);
-    Serial.print(F(", "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
-  }
-  
-  Serial.println(F("Calibration:"));
   Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
   Serial.print(F("assumedV = ")); Serial.println(EEProm.assumedVrms);
   for (byte ch=0; ch<NUM_I_CHANNELS; ch++) {
-    Serial.print(F("iCal")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iCal[ch]);
-    Serial.print(F("iLead")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iLead[ch]);
+    Serial.print(F("iCal")); Serial.print(ch+1); Serial.print(" = "); Serial.print(EEProm.iCal[ch]);
+    Serial.print(F(", iLead")); Serial.print(ch+1); Serial.print(" = "); Serial.println(EEProm.iLead[ch]);
   }
+  
+  print_pulse_setting();
+  print_radio_setting();
+
   Serial.print(F("datalog = ")); Serial.println(EEProm.period);
-  Serial.print(F("pulses = ")); Serial.println(EEProm.pulse_enable);
-  Serial.print(F("pulse period = ")); Serial.println(EEProm.pulse_period);
-  Serial.println(EEProm.rf_on ? F("RF on"):F("RF off"));
-  Serial.print(F("temp_enable = ")); Serial.println(EEProm.temp_enable);
-  Serial.println(EEProm.json_enabled ? F("JSON Format on"):F("JSON Format Off"));
+  
+  // Serial.print(F("temp_enable = ")); Serial.println(EEProm.temp_enable);
+  Serial.println(EEProm.json_enabled ? F("json = on"):F("json = off"));
+}
+
+void print_radio_setting() {
+  if (EEProm.rf_on) {
+    Serial.print(F("RF = on, rfBand = ")); 
+    Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
+                 EEProm.RF_freq == RF69_868MHZ ? 868 :
+                 EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
+    Serial.print(F(" MHz, rfGroup = ")); Serial.print(EEProm.networkGroup);
+    Serial.print(F(", rfNode = ")); Serial.print(EEProm.nodeID & 0x3F);
+    Serial.print(F(", rfPower = ")); Serial.print(EEProm.rfPower);
+
+    Serial.print(F(", rfFormat = "));
+    #ifdef RFM69_LOW_POWER_LABS
+      Serial.println(F("LowPowerLabs"));
+    #elif defined(RFM69_JEELIB_CLASSIC)
+      Serial.println(F("JeeLib Classic"));
+    #elif defined(RFM69_JEELIB_NATIVE)
+      Serial.println(F("JeeLib Native"));
+    #endif
+    
+  } else {
+    Serial.println(F("RF = off"));
+  }
+
+}
+
+void print_pulse_setting() {
+  Serial.print(F("pulse = "));
+  if (EEProm.pulse_enable)
+  {
+    Serial.print(PULSE_PIN);
+    Serial.print(F(", pulsePeriod = "));
+    Serial.print(EEProm.pulse_period);
+    Serial.println(F("ms"));
+  }
+  else
+  {
+    Serial.println(F("off"));
+  }
 }
 
 static void save_config()
@@ -162,10 +192,13 @@ void handle_conf(char *input, byte len) {
     case 'b':  // set band: 4 = 433, 8 = 868, 9 = 915
       if (len==2) {
         EEProm.RF_freq = bandToFreq(atoi(input+1));
+
+        Serial.print(F("rfBand = ")); 
         Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
                      EEProm.RF_freq == RF69_868MHZ ? 868 :
                      EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
         Serial.println(F(" MHz"));
+        
       }
       break;
     case 'c':
@@ -192,6 +225,8 @@ void handle_conf(char *input, byte len) {
             break;
           default: EEProm.json_enabled = false;
         }
+
+        Serial.println(EEProm.json_enabled ? F("json = on"):F("json = off"));
       }
       break;
     case 'd':
@@ -203,7 +238,7 @@ void handle_conf(char *input, byte len) {
       k2 = atof(input+1);
       EmonLibCM_datalog_period(k2); 
       EEProm.period = k2;
-      Serial.print(F("datalog period: ")); Serial.print(k2);Serial.println(F(" s"));
+      Serial.print(F("datalog = ")); Serial.println(k2);
       break;
     case 'e':
       input[len] = '\n';
@@ -216,13 +251,13 @@ void handle_conf(char *input, byte len) {
       if (len==3) {
         k1 = atof(input+1);
         EmonLibCM_cycles_per_second(k1);
-        Serial.print(F("Freq: "));Serial.println(k1);
+        Serial.print(F("freq = "));Serial.println(k1);
       }
       break;
     
     case 'g':  // set network group
       EEProm.networkGroup = atoi(input+1);
-      Serial.print(F("Group ")); Serial.println(EEProm.networkGroup);
+      Serial.print(F("rfGroup = ")); Serial.println(EEProm.networkGroup);
       break;
       
     /* case 'i' below */
@@ -270,50 +305,24 @@ void handle_conf(char *input, byte len) {
       }
       
       // Re-calculate intermediate values, write the values back.
-
-      switch (k1) {
-        case 0 : EmonLibCM_ReCalibrate_VChannel(k2);
-          EEProm.vCal = k2;
-          break;
-            
-        case 1 : EmonLibCM_ReCalibrate_IChannel(3, k2, k3);
-          EEProm.iCal[0] = k2;
-          EEProm.iLead[0] = k3;
-          break;
-
-        case 2 : EmonLibCM_ReCalibrate_IChannel(4, k2, k3);
-          EEProm.iCal[1] = k2;
-          EEProm.iLead[1] = k3;
-          break;
-
-        case 3 : EmonLibCM_ReCalibrate_IChannel(5, k2, k3);
-          EEProm.iCal[2] = k2;
-          EEProm.iLead[2] = k3;
-          break;
-
-        case 4 : EmonLibCM_ReCalibrate_IChannel(6, k2, k3);
-          EEProm.iCal[3] = k2;
-          EEProm.iLead[3] = k3;
-          break;
-
-        case 5 : EmonLibCM_ReCalibrate_IChannel(8, k2, k3);
-          EEProm.iCal[4] = k2;
-          EEProm.iLead[4] = k3;
-          break;
-
-        case 6 : EmonLibCM_ReCalibrate_IChannel(9, k2, k3);
-          EEProm.iCal[5] = k2;
-          EEProm.iLead[5] = k3;
-          break;
-
-        default : ;
-      }
+      int pin_map[] = {0, 3, 4, 5, 6, 8, 9};
       
-      Serial.print(F("Cal: k"));Serial.print(k1);Serial.print(F(" "));Serial.print(k2);Serial.print(F(" "));Serial.println(k3);        
+      if (k1==0) {
+        EmonLibCM_ReCalibrate_VChannel(k2);
+        EEProm.vCal = k2;
+        Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
+      } else {
+        EmonLibCM_ReCalibrate_IChannel(pin_map[k1], k2, k3);
+        EEProm.iCal[k1-1] = k2;
+        EEProm.iLead[k1-1] = k3;
+        Serial.print(F("iCal")); Serial.print(k1); Serial.print(" = "); Serial.print(EEProm.iCal[k1-1]);
+        Serial.print(F(", iLead")); Serial.print(k1); Serial.print(" = "); Serial.println(EEProm.iLead[k1-1]);
+      }      
       break;
         
     case 'l':
       if (len==1) {
+        print_firmware_version();
         list_calibration(); // print the settings & calibration values
         printTemperatureSensorAddresses(); // then the temperature sensors
       }
@@ -348,34 +357,19 @@ void handle_conf(char *input, byte len) {
       EmonLibCM_setPulseMinPeriod(k2);
       EEProm.pulse_period = k2;
       
-      if (PULSE_PIN==1) {
-        Serial.print(F("Pulse: "));
-      } else if (PULSE_PIN==2) {
-        Serial.print(F("Pulse on digital: "));
-      } else if (PULSE_PIN==3) {
-        Serial.print(F("Pulse on analog: "));
-      }
-      
-      if (EEProm.pulse_enable) {
-        Serial.print(F("enabled"));
-        Serial.print(F(", min period: "));
-        Serial.print(EEProm.pulse_period);
-        Serial.println(F("ms"));
-      } else {
-        Serial.println(F("disabled"));
-      }
+      print_pulse_setting();
       break;
       
     case 'i':  
     case 'n':  //  Set NodeID - range expected: 1 - 60
       EEProm.nodeID = atoi(input+1);
       EEProm.nodeID = constrain(EEProm.nodeID, 1, 63);
-      Serial.print(F("Node ")); Serial.println(EEProm.nodeID);
+      Serial.print(F("rfNode = ")); Serial.println(EEProm.nodeID);
       break;
 
     case 'p': // set RF power level
       EEProm.rfPower = (atoi(input+1) & 0x1F);
-      Serial.print(F("p = "));Serial.print(EEProm.rfPower - 18);Serial.println(F(" dBm"));
+      Serial.print(F("rfPower = ")); Serial.println(EEProm.rfPower);
       break;
       
     case 'r': // restore sketch defaults
@@ -398,7 +392,7 @@ void handle_conf(char *input, byte len) {
         EEProm.temp_enable = 0;
         if (input[1]=='1') EEProm.temp_enable = 1;
         EmonLibCM_TemperatureEnable(EEProm.temp_enable);
-        Serial.println(EEProm.temp_enable ? F("Temperature on"):F("Temperature off"));
+        Serial.println(EEProm.temp_enable ? F("temp_enable = 1"):F("temp_enable = 0"));
       }
       // set_temperatures();
       break;
@@ -415,14 +409,14 @@ void handle_conf(char *input, byte len) {
       if (len==2) {
         EEProm.rf_on = 0;
         if (input[1]=='1') EEProm.rf_on = 1;
-        Serial.println(EEProm.rf_on ? F("RF on"):F("RF off"));
+        print_radio_setting();
       }
       break;
       
     case 'x':  // exit and continue
       if (len==1) {
         Serial.println(F("Continuing..."));
-        calibration_enable = false;
+        // calibration_enable = false;
       }
       return;
 
@@ -529,7 +523,7 @@ void set_temperatures(void)
     // write to EEPROM
     EEProm.temp_enable = Serial.parseInt();
     EmonLibCM_TemperatureEnable(EEProm.temp_enable);
-    Serial.println(EEProm.temp_enable ? F("Temperature on"):F("Temperature off"));
+    Serial.println(EEProm.temp_enable ? F("temp_enable = 1"):F("temp_enable = 0"));
   }
   else if (k1 > sizeof(EEProm.allAddresses) / sizeof(DeviceAddress))
     return;
