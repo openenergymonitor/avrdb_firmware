@@ -115,6 +115,8 @@ RFM69 rf;
 
 #include <emonEProm.h> // OEM EEPROM library
 #include <emonLibCM.h> // OEM Continuous Monitoring library CM
+// Channel to pin map
+int pin_map[] = {0, 3, 4, 5, 6, 8, 9};
 
 // Payload length with 1V, 6I & Pulse = 4 + (1*2) + (6*2) + (6*4) + (3*2) + 4 = 52 bytes
 // + 2 bytes for analog

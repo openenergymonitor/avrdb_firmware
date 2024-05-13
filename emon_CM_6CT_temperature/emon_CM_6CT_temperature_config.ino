@@ -305,8 +305,6 @@ void handle_conf(char *input, byte len) {
       }
       
       // Re-calculate intermediate values, write the values back.
-      int pin_map[] = {0, 3, 4, 5, 6, 8, 9};
-      
       if (k1==0) {
         EmonLibCM_ReCalibrate_VChannel(k2);
         EEProm.vCal = k2;
@@ -317,7 +315,7 @@ void handle_conf(char *input, byte len) {
         EEProm.iLead[k1-1] = k3;
         Serial.print(F("iCal")); Serial.print(k1); Serial.print(" = "); Serial.print(EEProm.iCal[k1-1]);
         Serial.print(F(", iLead")); Serial.print(k1); Serial.print(" = "); Serial.println(EEProm.iLead[k1-1]);
-      }      
+      }
       break;
         
     case 'l':
