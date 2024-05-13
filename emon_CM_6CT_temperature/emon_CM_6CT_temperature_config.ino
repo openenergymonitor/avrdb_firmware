@@ -306,11 +306,11 @@ void handle_conf(char *input, byte len) {
       
       // Re-calculate intermediate values, write the values back.
       if (k1==0) {
-        EmonLibCM_ReCalibrate_VChannel(k2);
+        EmonLibCM_ReCalibrate_VChannel(k2*0.01*800.0);
         EEProm.vCal = k2;
         Serial.print(F("vCal = ")); Serial.println(EEProm.vCal);
       } else {
-        EmonLibCM_ReCalibrate_IChannel(pin_map[k1], k2, k3);
+        EmonLibCM_ReCalibrate_IChannel(pin_map[k1], k2/0.333, k3);
         EEProm.iCal[k1-1] = k2;
         EEProm.iLead[k1-1] = k3;
         Serial.print(F("iCal")); Serial.print(k1); Serial.print(" = "); Serial.print(EEProm.iCal[k1-1]);

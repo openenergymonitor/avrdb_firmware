@@ -152,7 +152,7 @@ struct
   byte rf_on = 1; // RF - 0 = no RF, 1 = RF on.
 #endif
   byte rfPower = 25;         // 7 = -10.5 dBm, 25 = +7 dBm for RFM12B; 0 = -18 dBm, 31 = +13 dBm for RFM69CW. Default = 25 (+7 dBm)
-  float vCal = 807.86;       // (6 x 10000) / 75 = 800.0
+  float vCal = 101.3;       // (6 x 10000) / 75 = 800.0
   float assumedVrms = 240.0; // Assumed Vrms when no a.c. is detected
   float lineFreq = 50;       // Line Frequency = 50 Hz
 
@@ -172,7 +172,7 @@ struct
   bool json_enabled = false;             // JSON Enabled - false = key,Value pair, true = JSON, default = false: Key,Value pair.
 } EEProm;
 
-uint16_t eepromSig = 0x0016; // oemEProm signature - see oemEProm Library documentation for details.
+uint16_t eepromSig = 0x0020; // oemEProm signature - see oemEProm Library documentation for details.
 
 #ifdef EEWL_DEBUG
 extern EEWL EVmem;
@@ -263,12 +263,12 @@ void setup()
   // Default calibration values
   for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
   {
-    EEProm.iCal[ch] = 60.06;
+    EEProm.iCal[ch] = 20.0;
     EEProm.iLead[ch] = 3.2;
   }
-  EEProm.iCal[0] = 300.30;
-  EEProm.iCal[1] = 150.15;
-  EEProm.iCal[2] = 150.15;
+  EEProm.iCal[0] = 100.0;
+  EEProm.iCal[1] = 50.0;
+  EEProm.iCal[2] = 50.0;
 
   // Load config from EEPROM (if any exists)
   load_config(true);
@@ -318,17 +318,17 @@ void setup()
   EmonLibCM_ADCCal(reference); // ADC Reference voltage, (1.024 V)
 
   // Note that we are setting pin mapping here: 0,3,4,5,6,8 (skips 1,2 & 7)
-  EmonLibCM_SetADC_VChannel(0, EEProm.vCal);                     // ADC Input channel, voltage calibration
-  EmonLibCM_SetADC_IChannel(3, EEProm.iCal[0], EEProm.iLead[0]); // ADC Input channel, current calibration, phase calibration
-  EmonLibCM_SetADC_IChannel(4, EEProm.iCal[1], EEProm.iLead[1]); // The current channels will be read in this order
-  EmonLibCM_SetADC_IChannel(5, EEProm.iCal[2], EEProm.iLead[2]);
-  EmonLibCM_SetADC_IChannel(6, EEProm.iCal[3], EEProm.iLead[3]);
-  EmonLibCM_SetADC_IChannel(8, EEProm.iCal[4], EEProm.iLead[4]);
+  EmonLibCM_SetADC_VChannel(0, EEProm.vCal*0.01*800);                     // ADC Input channel, voltage calibration
+  EmonLibCM_SetADC_IChannel(3, EEProm.iCal[0]/0.333, EEProm.iLead[0]); // ADC Input channel, current calibration, phase calibration
+  EmonLibCM_SetADC_IChannel(4, EEProm.iCal[1]/0.333, EEProm.iLead[1]); // The current channels will be read in this order
+  EmonLibCM_SetADC_IChannel(5, EEProm.iCal[2]/0.333, EEProm.iLead[2]);
+  EmonLibCM_SetADC_IChannel(6, EEProm.iCal[3]/0.333, EEProm.iLead[3]);
+  EmonLibCM_SetADC_IChannel(8, EEProm.iCal[4]/0.333, EEProm.iLead[4]);
 
 #ifdef ENABLE_ANALOG
-  EmonLibCM_SetADC_IChannel(19, EEProm.iCal[5], EEProm.iLead[5]);
+  EmonLibCM_SetADC_IChannel(19, EEProm.iCal[5]/0.333, EEProm.iLead[5]);
 #else
-  EmonLibCM_SetADC_IChannel(9, EEProm.iCal[5], EEProm.iLead[5]);
+  EmonLibCM_SetADC_IChannel(9, EEProm.iCal[5]/0.333, EEProm.iLead[5]);
 #endif
 
   // mains frequency 50Hz
