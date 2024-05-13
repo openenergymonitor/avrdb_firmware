@@ -157,7 +157,7 @@ struct
   bool json_enabled = false; // JSON Enabled - false = key,Value pair, true = JSON, default = false: Key,Value pair.
 } EEProm;
 
-uint16_t eepromSig = 0x0020; // oemEProm signature - see oemEProm Library documentation for details.
+uint16_t eepromSig = 0x0021; // oemEProm signature - see oemEProm Library documentation for details.
 
 #ifdef EEWL_DEBUG
 extern EEWL EVmem;
@@ -241,6 +241,9 @@ void setup()
     EEProm.iCal[ch] = 20.0;
     EEProm.iLead[ch] = 3.2;
   }
+  EEProm.iCal[0] = 100.0;
+  EEProm.iCal[1] = 50.0;
+  EEProm.iCal[2] = 50.0;
 
   // Load config from EEPROM (if any exists)
   load_config(true);
@@ -254,25 +257,7 @@ void setup()
 #endif
   // ---------------------------------------------------------------------------------------
 
-  if (EEProm.rf_on)
-  {
-#ifdef RFM69_JEELIB_CLASSIC
-    rf.format(RFM69_JEELIB_CLASSIC);
-#endif
-
-// Frequency is currently hardcoded to 433Mhz in library
-#ifdef RFM69_LOW_POWER_LABS
-#ifdef EMONTX4
-    rf.setPins(PIN_PB5, PIN_PC0, PIN_PC1, PIN_PC2);
-#else
-    rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
-#endif
-#endif
-
-    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
-    rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
-    delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
-  }
+  init_radio();
 
   // ---------------------------------------------------------------------------------------
 
@@ -615,4 +600,26 @@ void print_firmware_version() {
 
   Serial.print(NUM_V_CHANNELS);
   Serial.println(F("phase"));
+}
+
+void init_radio() {
+  if (EEProm.rf_on)
+  {
+#ifdef RFM69_JEELIB_CLASSIC
+    rf.format(RFM69_JEELIB_CLASSIC);
+#endif
+
+// Frequency is currently hardcoded to 433Mhz in library
+#ifdef RFM69_LOW_POWER_LABS
+#ifdef EMONTX4
+    rf.setPins(PIN_PB5, PIN_PC0, PIN_PC1, PIN_PC2);
+#else
+    rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
+#endif
+#endif
+
+    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
+    rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
+    delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
+  }
 }

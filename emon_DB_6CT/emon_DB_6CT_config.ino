@@ -304,7 +304,7 @@ void handle_conf(char *input, byte len) {
         EEProm.iLead[k1-1] = k3;
         Serial.print(F("iCal")); Serial.print(k1); Serial.print(" = "); Serial.print(EEProm.iCal[k1-1]);
         Serial.print(F(", iLead")); Serial.print(k1); Serial.print(" = "); Serial.println(EEProm.iLead[k1-1]);
-      }      
+      }
       break;
         
     case 'l':
@@ -382,7 +382,10 @@ void handle_conf(char *input, byte len) {
        */
       if (len==2) {
         EEProm.rf_on = 0;
-        if (input[1]=='1') EEProm.rf_on = 1;
+        if (input[1]=='1') {
+          EEProm.rf_on = 1;
+          init_radio();
+        }
         print_radio_setting();
       }
       break;
