@@ -152,7 +152,7 @@ struct
   byte rf_on = 1; // RF - 0 = no RF, 1 = RF on.
 #endif
   byte rfPower = 25;         // 7 = -10.5 dBm, 25 = +7 dBm for RFM12B; 0 = -18 dBm, 31 = +13 dBm for RFM69CW. Default = 25 (+7 dBm)
-  float vCal = 101.3;       // (6 x 10000) / 75 = 800.0
+  float vCal = 101.1;       // (6 x 10000) / 75 = 800.0
   float assumedVrms = 240.0; // Assumed Vrms when no a.c. is detected
   float lineFreq = 50;       // Line Frequency = 50 Hz
 
