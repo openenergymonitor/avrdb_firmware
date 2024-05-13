@@ -172,7 +172,7 @@ struct
   bool json_enabled = false;             // JSON Enabled - false = key,Value pair, true = JSON, default = false: Key,Value pair.
 } EEProm;
 
-uint16_t eepromSig = 0x0020; // oemEProm signature - see oemEProm Library documentation for details.
+uint16_t eepromSig = 0x0022; // oemEProm signature - see oemEProm Library documentation for details.
 
 #ifdef EEWL_DEBUG
 extern EEWL EVmem;
