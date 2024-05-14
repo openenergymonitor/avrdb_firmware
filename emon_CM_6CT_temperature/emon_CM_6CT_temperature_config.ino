@@ -240,6 +240,17 @@ void handle_conf(char *input, byte len) {
       EEProm.period = k2;
       Serial.print(F("datalog = ")); Serial.println(k2);
       break;
+    case 'a':
+      /*  Format expected: a[x]
+       * 
+       * where:
+       *  [x] = a floating point number for assumed Vrms
+       */
+      k2 = atof(input+1);
+      EmonLibCM_setAssumedVrms(k2);
+      EEProm.assumedVrms = k2;
+      Serial.print(F("assumedVrms = ")); Serial.println(k2);
+      break;
     case 'e':
       input[len] = '\n';
       Serial.print(input+1);
