@@ -7,9 +7,14 @@ two packets sent consecutively. Each packet is sent from a different NodeID, but
 and share the same message number.
 
 The first packet contains values pertaining to CTs 1-6, the second packet to CTs 7 - 12. 
+
+  Change Log:
+  v1.0.0: First release of 12 CT firmware based on emonLibDB_rf example
+  v1.1.0: Combined emonTx4, emonTx5 and emonPi2 firmware
+
 */
 
-const char *firmware_version = {"1.0.0\n\r"};
+const char *firmware_version = {"1.1.0\n\r"};
 
 // ------------------------------------------------------------------------
 // Configuration
@@ -17,13 +22,20 @@ const char *firmware_version = {"1.0.0\n\r"};
 
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
-#define EMONPI2
+#define EMONTX5
 
 // 2. Include for 12 CT's using expansion board
 #define EXPANSION_BOARD
 
+// 3. Set number of voltage channels (1 for single phase, 3 for three phase)
+#define NUM_V_CHANNELS 3
+
+// 4. Include energy readings
+// #define ENABLE_ENERGY
+
 // ------------------------------------------------------------------------
 
+// Always Serial3
 #define Serial Serial3
 #include <Arduino.h>
 #include "emonLibDB.h"
@@ -105,11 +117,13 @@ void setup()
   Serial.println("Set baud=115200");
   Serial.end();
   Serial.begin(115200);
-  
+  print_firmware_version();
+
 // OLED display
 // Very simple starting message and then
 // control is passed to the Raspberry Pi
 #ifdef EMONPI2
+  Serial.println(F("Starting emonPi2 OLED"));
   delay(1000);
   Wire1.swap(2);
   Wire1.begin();
@@ -133,35 +147,36 @@ void setup()
   pinMode(PIN_PB3, INPUT);
 #endif  
   
-  Serial.print(F("emon_DB_12CT V")); Serial.write(firmware_version);
-  Serial.println(F("OpenEnergyMonitor.org"));
 
   /****************************************************************************
   *                                                                           *
   * Initialise the radio                                                      *
   *                                                                           *
   ****************************************************************************/
-  
-  #ifdef EMONTX4
+#ifndef EMONPI2
+#ifdef EMONTX4
     rf.setPins(PIN_PB5,PIN_PC0,PIN_PC1,PIN_PC2);
-  #else
+#else
     rf.setPins(PIN_PA7,PIN_PA4,PIN_PA5,PIN_PA6);
-  #endif
+#endif
   if(rf.initialize(RF69_433MHZ, NodeID1, networkGroup))
   {
     rfHealthy = true;
     rf.encrypt(ENCRYPTION_KEY);
-    Serial.println("RadioFormat: LowPowerLabs");
+    Serial.print(F("RF = on, rfBand = 433 MHz"));
+    Serial.print(F(", rfGroup = ")); Serial.print(networkGroup);
+    Serial.print(F(", rfNode = ")); Serial.print(NodeID1 & 0x3F);
+    Serial.println(", rfFormat = LowPowerLabs");
   }
   else
   {
     Serial.println("Unable to start Radio Module");
     panic(2,10);
     Serial.println("Continuing without radio.");
+    Serial.println(F("RF = off"));
+
   }
-  
-  // Disable radio transmit
-  // rfHealthy = false;
+#endif
   
   /****************************************************************************
   *                                                                           *
@@ -170,28 +185,25 @@ void setup()
   ****************************************************************************/
   
   EmonLibDB_set_vInput(1, 101.3, 0.16);  
+#if NUM_V_CHANNELS == 3
+  EmonLibDB_set_vInput(2, 101.3, 0.16); 
+  EmonLibDB_set_vInput(3, 101.3, 0.16); 
+#endif
   
-  /* Include the next two lines if you have a 3-phase emonVS */
- 
-  // EmonLibDB_set_vInput(2, 101.3, 0.16); 
-  // EmonLibDB_set_vInput(3, 101.3, 0.16); 
-  
-  EmonLibDB_set_cInput(1, 100.0, 3.2);
-  EmonLibDB_set_cInput(2, 100.0, 3.2);
-  EmonLibDB_set_cInput(3, 100.0, 3.2);
-  EmonLibDB_set_cInput(4, 50.0, 3.2);
-  EmonLibDB_set_cInput(5, 50.0, 3.2);
-  EmonLibDB_set_cInput(6, 50.0, 3.2);
+  EmonLibDB_set_cInput(1, 20.0, 3.2);
+  EmonLibDB_set_cInput(2, 20.0, 3.2);
+  EmonLibDB_set_cInput(3, 20.0, 3.2);
+  EmonLibDB_set_cInput(4, 20.0, 3.2);
+  EmonLibDB_set_cInput(5, 20.0, 3.2);
+  EmonLibDB_set_cInput(6, 20.0, 3.2);
   
 #ifdef EXPANSION_BOARD
-
   EmonLibDB_set_cInput(7, 20.0, 3.2);
   EmonLibDB_set_cInput(8, 20.0, 3.2);
   EmonLibDB_set_cInput(9, 20.0, 3.2);
   EmonLibDB_set_cInput(10, 20.0, 3.2);
   EmonLibDB_set_cInput(11, 20.0, 3.2);
   EmonLibDB_set_cInput(12, 20.0, 3.2);
-  
 #endif  
 
   /****************************************************************************
@@ -203,26 +215,40 @@ void setup()
   *    that apply to current/power inputs being used.                         *
   ****************************************************************************/
 
-/*
-  EmonLibDB_set_pInput(1, 1);                  // CT1, V1
-*/
-  EmonLibDB_set_pInput(1, 1);                  // CT2, V2 (etc)
+#if NUM_V_CHANNELS == 1
+  EmonLibDB_set_pInput(1, 1);                  // CT1, V1 (etc)
   EmonLibDB_set_pInput(2, 1);
   EmonLibDB_set_pInput(3, 1);
   EmonLibDB_set_pInput(4, 1);  
   EmonLibDB_set_pInput(5, 1);
   EmonLibDB_set_pInput(6, 1);
-
 #ifdef EXPANSION_BOARD
-
-  EmonLibDB_set_pInput(7, 1);                  // CT7, V1  
-  EmonLibDB_set_pInput(8, 1);                  // CT8, V2 (etc)
+  EmonLibDB_set_pInput(7, 1);                  // CT7, V1 (etc)
+  EmonLibDB_set_pInput(8, 1);
   EmonLibDB_set_pInput(9, 1);
   EmonLibDB_set_pInput(10, 1);  
   EmonLibDB_set_pInput(11, 1);
   EmonLibDB_set_pInput(12, 1);
-
 #endif
+#endif
+
+#if NUM_V_CHANNELS == 3
+  EmonLibDB_set_pInput(1, 1);                  // CT1, V1 (etc)
+  EmonLibDB_set_pInput(2, 2);
+  EmonLibDB_set_pInput(3, 3);
+  EmonLibDB_set_pInput(4, 1);  
+  EmonLibDB_set_pInput(5, 2);
+  EmonLibDB_set_pInput(6, 3);
+#ifdef EXPANSION_BOARD
+  EmonLibDB_set_pInput(7, 1);                  // CT7, V1 (etc)  
+  EmonLibDB_set_pInput(8, 2);
+  EmonLibDB_set_pInput(9, 3);
+  EmonLibDB_set_pInput(10, 1);  
+  EmonLibDB_set_pInput(11, 2);
+  EmonLibDB_set_pInput(12, 3);
+#endif
+#endif
+
 
   /* How to measure Line-Line loads: */
 /*
@@ -247,15 +273,15 @@ void setup()
 */      
   EmonLibDB_setPulseEnable(false);             // Enable counting on the "Pulse" input
   EmonLibDB_setPulseMinPeriod(20);             // Contact bounce must not last longer than 20 ms
+  Serial.println("pulse = off");
+
   // EmonLibDB_setPulseEnable(Dig, true);      // Enable counting on the "Pulse" input
   // EmonLibDB_setPulseMinPeriod(Dig, 20);     // Contact bounce must not last longer than 20 ms
 
   EmonLibDB_datalogPeriod(DATALOG);            // Report every 9.8 s (approx)
-  Serial.print("Starting ");
   EmonLibDB_Init();                            // Start continuous monitoring.
-  Serial.print("reports every ");
-  Serial.print(EmonLibDB_getDatalogPeriod());
-  Serial.println(" seconds approx.\n");
+  Serial.print("datalog = ");
+  Serial.println(EmonLibDB_getDatalogPeriod());
   
 }
 
@@ -333,7 +359,7 @@ void loop()
     // Serial.print("V2:"); Serial.print(EmonLibDB_getVrms(2)); Serial.print(",");
     // Serial.print("V3:"); Serial.print(EmonLibDB_getVrms(3)); Serial.print(",");
     
-    Serial.print("F:"); Serial.print(EmonLibDB_getLineFrequency()); Serial.print(",");
+    Serial.print("F:"); Serial.print(EmonLibDB_getLineFrequency());
     
 #ifndef EXPANSION_BOARD
     for (uint8_t ch=1; ch<=6; ch++)
@@ -344,7 +370,9 @@ void loop()
       Serial.print(",P"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getRealPower(ch));
       // Serial.print(",I"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getIrms(ch),3);
       // Serial.print(",VA"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getApparentPower(ch));
-      // Serial.print(",E"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getWattHour(ch));
+      #ifdef ENABLE_ENERGY
+      Serial.print(",E"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getWattHour(ch));
+      #endif
       // Serial.print(",PF"); Serial.print(ch); Serial.print(":"); Serial.print(EmonLibDB_getPF(ch),4);
     } 
     Serial.println();
@@ -363,4 +391,27 @@ void panic(uint8_t rate, uint8_t duration)
     duration--;
   }
   return;
+}
+
+void print_firmware_version() {
+
+  Serial.println(F("firmware = emon_DB_12CT"));
+  Serial.print(F("version = "));
+  Serial.write(firmware_version);
+
+  Serial.print(F("hardware = "));
+
+#ifdef EMONTX4
+  Serial.println(F("emonTx4"));
+#endif
+#ifdef EMONPI2
+  Serial.println(F("emonPi2"));
+#endif
+#ifdef EMONTX5
+  Serial.println(F("emonTx5"));
+#endif
+  Serial.print(F("voltage = "));
+
+  Serial.print(NUM_V_CHANNELS);
+  Serial.println(F("phase"));
 }
