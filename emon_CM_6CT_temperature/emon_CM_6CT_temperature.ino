@@ -680,7 +680,12 @@ double read_reference()
 
 void print_firmware_version() {
 
-  Serial.println(F("firmware = emon_CM_6CT_temperature"));
+  Serial.print(F("firmware = emon_CM_6CT"));
+#ifndef EMONPI2
+  Serial.println(F("_temperature"));
+#else
+  Serial.println();
+#endif
   Serial.print(F("version = "));
   Serial.write(firmware_version);
 
