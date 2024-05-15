@@ -21,7 +21,9 @@ const PROGMEM char helpText1[] =
 "x\t\t- exit, lock and continue\n"
 "?\t\t- show this text again\n"
 "\n"
+#ifndef EMONPI2
 "w<x>\t\t- turn RFM Wireless data off: x = 0 or on: x = 1\n"
+#endif
 "b<n>\t\t- set r.f. band n = a single numeral: 4 = 433MHz, 8 = 868MHz, 9 = 915MHz (may require hardware change)\n"
 "p<nn>\t\t- set the r.f. power. nn - an integer 0 - 31 representing -18 dBm to +13 dBm. Default: 25 (+7 dBm)\n"
 "g<nnn>\t- set Network Group  nnn - an integer (OEM default = 210)\n"
@@ -369,17 +371,11 @@ void handle_conf(char *input, byte len) {
       if (len==1) {
         save_config();
       }
-      break;
-
-    case 'v': // print firmware version
-      if (len==1) {
-        print_firmware_version();
-      }
-      break;
-    
+      break;   
     case 'w' :  // Wireless - RF Off / On
       /* Format expected: w[x]
        */
+#ifndef EMONPI2
       if (len==2) {
         EEProm.rf_on = 0;
         if (input[1]=='1') {
@@ -387,6 +383,14 @@ void handle_conf(char *input, byte len) {
           init_radio();
         }
         print_radio_setting();
+      }
+#else
+      Serial.println(F("Radio is handled by the Pi on the emonPi2"));
+#endif
+      break;
+    case 'v': // print firmware version
+      if (len==1) {
+        print_firmware_version();
       }
       break;
       
