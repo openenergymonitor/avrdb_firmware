@@ -64,7 +64,7 @@ const char *firmware_version = {"1.6.0\n\r"};
 #define ENABLE_ENERGY
 
 // 6. Set pulse counting pin
-// Options: 1 = pulse on digital, 2 = pulse on digital, 3 = pulse on analog (default)
+// Options: 1 = pulse on digital (default emonTx4), 2 = pulse on digital, 3 = pulse on analog (default emonPi2 & emonTx5)
 #define PULSE_PIN 3
 
 // 6. Enable analog reading (disabled by default)
