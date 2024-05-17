@@ -153,9 +153,9 @@ const byte LEDpin = PIN_PC2; // emonPi2/Tx5 LED
 // Used in config.ini
 static void showString (PGM_P s);
 
-uint32_t counter = 0;
-void setup() 
-{  
+//----------------------------------------Setup--------------------------------------------------
+void setup()
+{
   // wdt_enable(WDTO_8S);
 
   // Indicator LED
@@ -192,8 +192,9 @@ void setup()
 
   pinMode(PIN_PB2, INPUT);
   pinMode(PIN_PB3, INPUT);
-#endif  
-  
+
+#endif
+
 // EmonTx4 DIP switch settings
 #ifdef EMONTX4
   pinMode(DIP_switch1, INPUT_PULLUP);
@@ -211,9 +212,9 @@ void setup()
     EEProm.iCal[ch] = 20.0;
     EEProm.iLead[ch] = 3.2;
   }
-  EEProm.iCal[0] = 100.0;
-  EEProm.iCal[1] = 50.0;
-  EEProm.iCal[2] = 50.0;
+  // EEProm.iCal[0] = 100.0;
+  // EEProm.iCal[1] = 50.0;
+  // EEProm.iCal[2] = 50.0;
 
   // Load config from EEPROM (if any exists)
   load_config(true);
@@ -234,18 +235,18 @@ void setup()
   double reference = read_reference();
   Serial.print(F("vrefa = "));
   Serial.println(reference, 4);
-  
+
   // Apply voltage and current channel calibration
   EmonLibDB_set_vInput(1, EEProm.vCal, 0.16); // emonVS Input channel 1, voltage calibration 100, phase error 0.16°
 #if NUM_V_CHANNELS == 3
   EmonLibDB_set_vInput(2, EEProm.vCal, 0.16); // emonVS Input channel 2, voltage calibration 100, phase error 0.16°
   EmonLibDB_set_vInput(3, EEProm.vCal, 0.16); // emonVS Input channel 3, voltage calibration 100, phase error 0.16°
 #endif
-  
+
   for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
   {
     EmonLibDB_set_cInput(ch + 1, EEProm.iCal[ch], EEProm.iLead[ch]);
-  } 
+  }
 
 // Link voltage and current sensors to define the power & energy measurements
 // For best precision and performance, include only the following lines that 
@@ -299,7 +300,7 @@ void setup()
   EmonLibDB_minStartupCycles(10);         // number of cycles to let ADC run before starting first actual measurement
   EmonLibDB_datalogPeriod(EEProm.period); // period of readings in seconds - normal value for emoncms.org
   EmonLibDB_ADCCal(reference);            // ADC Reference voltage, (1.024 V)
-  
+
   // Pulse counting configuration
   // Make sure appropriate solder link is made on the hardware and related TMP link is broken
   // The 'Analogue' input is not available if an extender card is fitted
@@ -319,11 +320,11 @@ void setup()
   EmonLibDB_datalogPeriod(2.0);
 }
 
-void loop()             
+void loop()
 {
   getSettings();
-  
-  if (EmonLibDB_Ready())   
+
+  if (EmonLibDB_Ready())
   {
     if (txPacket1.Msg == 0)
     {
@@ -391,6 +392,9 @@ void loop()
 
     if (EEProm.json_enabled)
     {
+      // ---------------------------------------------------------------------
+      // JSON Format
+      // ---------------------------------------------------------------------
       Serial.print(F("{\"MSG\":")); Serial.print(txPacket1.Msg);
       // Serial.print(EmonLibDB_acPresent(1)?"  AC present ":"  AC missing ");
       
@@ -416,6 +420,10 @@ void loop()
     } 
     else 
     {
+
+      // ---------------------------------------------------------------------
+      // Key:Value format, used by EmonESP & emonhub EmonHubOEMInterfacer
+      // ---------------------------------------------------------------------
       Serial.print("MSG:"); Serial.print(txPacket1.Msg); Serial.print(",");
       // Serial.print(EmonLibDB_acPresent(1)?"  AC present ":"  AC missing ");
       
