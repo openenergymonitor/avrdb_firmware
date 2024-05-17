@@ -36,7 +36,7 @@ const char *firmware_version = {"1.2.0\n\r"};
 
 // 5. Set pulse counting pin
 // Options: 1 = pulse on digital, 2 = pulse on digital, 3 = pulse on analog (default)
-#define PULSE_PIN 3
+#define PULSE_PIN 1
 
 // ------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ struct
   float iLead[NUM_I_CHANNELS];
 
   float period = 9.8;        // datalogging period - should be fractionally less than the PHPFINA database period in emonCMS
-  bool pulse_enable = true;  // pulse counting
+  bool pulse_enable = false;  // pulse counting
   int pulse_period = 100;    // pulse min period - 0 = no de-bounce
   bool showCurrents = false; // Print to serial voltage, current & p.f. values
   bool json_enabled = false; // JSON Enabled - false = key,Value pair, true = JSON, default = false: Key,Value pair.
