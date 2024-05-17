@@ -132,7 +132,7 @@ struct
 } EEProm;
 // sizeof: 1+1+1+1+1+(4×12)+(4×12)+4+1+2+1+1 = 110 bytes
 
-uint16_t eepromSig = 0x0020; // oemEProm signature - see oemEProm Library documentation for details.
+uint16_t eepromSig = 0x0030; // oemEProm signature - see oemEProm Library documentation for details.
 
 // This only sets the expected frequency 50Hz/60Hz
 // The voltage calibration stays the same
