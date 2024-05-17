@@ -26,7 +26,7 @@ const char *firmware_version = {"1.2.0\n\r"};
 #define EMONTX5
 
 // 2. Set number of voltage channels (1 for single phase, 3 for three phase)
-#define NUM_V_CHANNELS 3
+#define NUM_V_CHANNELS 1
 
 // 3. Set number of current channels (this should always be 12)
 #define NUM_I_CHANNELS 12
