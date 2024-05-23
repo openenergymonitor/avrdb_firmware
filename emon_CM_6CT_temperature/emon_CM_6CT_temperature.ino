@@ -29,7 +29,7 @@
   v1.6.0: Single firmware for emonTx4/5 & emonPi2
 
 */
-const char *firmware_version = {"1.6.0\n\r"};
+const char *firmware_version = {"1.6.1\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -60,8 +60,10 @@ const char *firmware_version = {"1.6.0\n\r"};
 // 4. Set number of current channels (this should always be 6)
 #define NUM_I_CHANNELS 6
 
-// 5. Include energy readings
+// 5. Include power & energy readings
+#define ENABLE_POWER
 #define ENABLE_ENERGY
+// #define ENABLE_CURRENT
 
 // 6. Set pulse counting pin
 // Options: 1 = pulse on digital (default emonTx4), 2 = pulse on digital, 3 = pulse on analog (default emonPi2 & emonTx5)
@@ -124,9 +126,14 @@ typedef struct
 {
   unsigned long Msg;
   int Vrms;
+#ifdef ENABLE_POWER
   int P[NUM_I_CHANNELS];
+#endif
 #ifdef ENABLE_ENERGY
   long E[NUM_I_CHANNELS];
+#endif
+#ifdef ENABLE_CURRENT
+  int I[NUM_I_CHANNELS];
 #endif
   int T[MAX_TEMPS];
   unsigned long pulse;
@@ -437,9 +444,14 @@ void loop()
 
     for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
     {
+#ifdef ENABLE_POWER
       emon.P[ch] = EmonLibCM_getRealPower(ch);
+#endif
 #ifdef ENABLE_ENERGY
       emon.E[ch] = EmonLibCM_getWattHour(ch);
+#endif
+#ifdef ENABLE_CURRENT
+      emon.I[ch] = EmonLibCM_getIrms(ch)*1000;
 #endif
     }
 
@@ -492,6 +504,7 @@ void loop()
       Serial.print(F(",\"Vrms\":"));
       Serial.print(emon.Vrms * 0.01);
 
+#ifdef ENABLE_POWER
       for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
       {
         Serial.print(F(",\"P"));
@@ -499,6 +512,7 @@ void loop()
         Serial.print("\":");
         Serial.print(emon.P[ch]);
       }
+#endif
 
 #ifdef ENABLE_ENERGY
       for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
@@ -516,7 +530,7 @@ void loop()
         Serial.print(F(",\"I"));
         Serial.print(ch + 1);
         Serial.print("\":");
-        Serial.print(emon.I[ch]);
+        Serial.print(emon.I[ch]*0.001,3);
       }
 #endif
 
@@ -560,6 +574,7 @@ void loop()
       Serial.print(F(",Vrms:"));
       Serial.print(emon.Vrms * 0.01);
 
+#ifdef ENABLE_POWER
       for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
       {
         Serial.print(F(",P"));
@@ -567,6 +582,7 @@ void loop()
         Serial.print(":");
         Serial.print(emon.P[ch]);
       }
+#endif
 
 #ifdef ENABLE_ENERGY
       for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
@@ -584,7 +600,7 @@ void loop()
         Serial.print(F(",I"));
         Serial.print(ch + 1);
         Serial.print(":");
-        Serial.print(emon.I[ch]);
+        Serial.print(emon.I[ch]*0.001,3);
       }
 #endif
 
