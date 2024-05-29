@@ -27,9 +27,11 @@
           reduces interference caused by DS18B20 temperature sensing
   v1.5.7: Fix disabling of temperature sensing at startup if none detected
   v1.6.0: Single firmware for emonTx4/5 & emonPi2
+  v1.6.1: Compile options to show/hide power, energy and current values 
+  v1.6.2: Fix c1 Irms and PF channel allocation for serial print
 
 */
-const char *firmware_version = {"1.6.1\n\r"};
+const char *firmware_version = {"1.6.2\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -643,14 +645,14 @@ void loop()
           Serial.print(F(",I"));
           Serial.print(ch + 1);
           Serial.print(":");
-          Serial.print(EmonLibCM_getIrms(EmonLibCM_getLogicalChannel(ch + 1)), 3);
+          Serial.print(EmonLibCM_getIrms(ch), 3);
         }
         for (byte ch = 0; ch < NUM_I_CHANNELS; ch++)
         {
           Serial.print(F(",pf"));
           Serial.print(ch + 1);
           Serial.print(":");
-          Serial.print(EmonLibCM_getPF(EmonLibCM_getLogicalChannel(ch + 1)), 4);
+          Serial.print(EmonLibCM_getPF(ch), 4);
         }
         Serial.println();
         delay(80);
