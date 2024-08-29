@@ -78,6 +78,8 @@ const char *firmware_version = {"1.6.3\n\r"};
 
 // Option to enable a simple digital 0/1 reading on the analog input pin
 // #define ENABLE_DIGITAL_ON_ANALOG
+// Option to invert digital signal state (used for DHW detection)
+// #define INVERT_DIGITAL
 
 // 7. EEPROM wear leveling debug (disabled by default)
 // #define EEWL_DEBUG
@@ -485,7 +487,11 @@ void loop()
 #endif
 
 #ifdef ENABLE_DIGITAL_ON_ANALOG
+    #ifdef INVERT_DIGITAL
+    emon.digital = !digitalRead(PIN_PF3);
+    #else
     emon.digital = digitalRead(PIN_PF3);
+    #endif
 #endif
 
     if (EEProm.rf_on)
