@@ -29,9 +29,10 @@
   v1.6.0: Single firmware for emonTx4/5 & emonPi2
   v1.6.1: Compile options to show/hide power, energy and current values 
   v1.6.2: Fix c1 Irms and PF channel allocation for serial print
+  v1.6.3: Option to enable analog input as simple digital pin
 
 */
-const char *firmware_version = {"1.6.2\n\r"};
+const char *firmware_version = {"1.6.3\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -74,6 +75,9 @@ const char *firmware_version = {"1.6.2\n\r"};
 // 6. Enable analog reading (disabled by default)
 // IF ENABLED CHANGE NUM_I_CHANNELS = 5
 // #define ENABLE_ANALOG
+
+// Option to enable a simple digital 0/1 reading on the analog input pin
+// #define ENABLE_DIGITAL_ON_ANALOG
 
 // 7. EEPROM wear leveling debug (disabled by default)
 // #define EEWL_DEBUG
@@ -141,6 +145,9 @@ typedef struct
   unsigned long pulse;
 #ifdef ENABLE_ANALOG
   int analog;
+#endif
+#ifdef ENABLE_DIGITAL_ON_ANALOG
+  int digital;
 #endif
 } PayloadTX; // create a data packet for the RFM
 PayloadTX emon;
@@ -322,6 +329,10 @@ void setup()
   EmonLibCM_SetADC_IChannel(9, EEProm.iCal[5]/0.333, EEProm.iLead[5]);
 #endif
 
+#ifdef ENABLE_DIGITAL_ON_ANALOG
+  pinMode(PIN_PF3, INPUT);
+#endif
+
   // mains frequency 50Hz
   if (!USA)
   {
@@ -473,6 +484,10 @@ void loop()
     emon.analog = EmonLibCM_getMean(NUM_I_CHANNELS - 1);
 #endif
 
+#ifdef ENABLE_DIGITAL_ON_ANALOG
+    emon.digital = digitalRead(PIN_PF3);
+#endif
+
     if (EEProm.rf_on)
     {
       PayloadTX tmp = emon;
@@ -562,6 +577,12 @@ void loop()
       Serial.print(emon.analog);
 #endif
 
+// Digital reading
+#ifdef ENABLE_DIGITAL_ON_ANALOG
+      Serial.print(F(",\"digital\":"));
+      Serial.print(emon.digital);
+#endif
+
       Serial.println(F("}"));
       delay(60);
     }
@@ -630,6 +651,12 @@ void loop()
 #ifdef ENABLE_ANALOG
       Serial.print(F(",analog:"));
       Serial.print(emon.analog);
+#endif
+
+// Digital reading
+#ifdef ENABLE_DIGITAL_ON_ANALOG
+      Serial.print(F(",digital:"));
+      Serial.print(emon.digital);
 #endif
 
       if (!EEProm.showCurrents)
