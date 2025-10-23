@@ -15,9 +15,10 @@
   v2.0.1: Default nodeid set to 27
   v2.0.2: Change default phase allocation to 1-2-3 1-2-3
   v2.1.0: Combined single and three phase firmware for emonTx4/5 & emonPi2
+  v2.1.1: Fixed channel allocation bug in this firmware when reading the EEPROM saved last energy values
 
 */
-const char *firmware_version = {"2.1.0\n\r"};
+const char *firmware_version = {"2.1.1\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -337,12 +338,12 @@ void setup()
 
 #ifdef ENABLE_ENERGY
   recoverEValues(&e0, &e1, &e2, &e3, &e4, &e5, &p);
-  EmonLibDB_setWattHour(0, e0);
-  EmonLibDB_setWattHour(1, e1);
-  EmonLibDB_setWattHour(2, e2);
-  EmonLibDB_setWattHour(3, e3);
-  EmonLibDB_setWattHour(4, e4);
-  EmonLibDB_setWattHour(5, e5);
+  EmonLibDB_setWattHour(1, e0);
+  EmonLibDB_setWattHour(2, e1);
+  EmonLibDB_setWattHour(3, e2);
+  EmonLibDB_setWattHour(4, e3);
+  EmonLibDB_setWattHour(5, e4);
+  EmonLibDB_setWattHour(6, e5);
 #endif
 
   EmonLibDB_setPulseCount(p);
