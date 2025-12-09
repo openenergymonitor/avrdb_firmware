@@ -12,10 +12,11 @@ The first packet contains values pertaining to CTs 1-6, the second packet to CTs
   v1.0.0: First release of 12 CT firmware based on emonLibDB_rf example
   v1.1.0: Combined emonTx4, emonTx5 and emonPi2 firmware
   v1.2.0: Serial configuration
+  v1.3.0: Default radio frequency set to 433.92MHz
 
 */
 
-const char *firmware_version = {"1.2.0\n\r"};
+const char *firmware_version = {"1.3.0\n\r"};
 
 // ------------------------------------------------------------------------
 // Configuration
@@ -109,7 +110,7 @@ struct {
 // The radio module on the emonPi2 is handled by the Raspberry Pi directly (hence it is turned off here)
 struct
 {
-  byte RF_freq = RF69_433MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
+  byte RF_freq = RF69_433_92MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
   byte networkGroup = 210;    // wireless network group, must be the same as receiver. OEM default is 210
   byte nodeID = 28;           // node ID.
 #ifdef EMONPI2

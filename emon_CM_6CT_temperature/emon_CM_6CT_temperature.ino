@@ -30,9 +30,10 @@
   v1.6.1: Compile options to show/hide power, energy and current values 
   v1.6.2: Fix c1 Irms and PF channel allocation for serial print
   v1.6.3: Option to enable analog input as simple digital pin
+  v1.7.0: Default radio frequency set to 433.92MHz
 
 */
-const char *firmware_version = {"1.6.3\n\r"};
+const char *firmware_version = {"1.7.0\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -161,7 +162,7 @@ int allTemps[MAX_TEMPS]; // Array to receive temperature sensor readings
 // The radio module on the emonPi2 is handled by the Raspberry Pi directly (hence it is turned off here)
 struct
 {
-  byte RF_freq = RF69_433MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
+  byte RF_freq = RF69_433_92MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
   byte networkGroup = 210;    // wireless network group, must be the same as receiver. OEM default is 210
   byte nodeID = 17;           // node ID.
 #ifdef EMONPI2

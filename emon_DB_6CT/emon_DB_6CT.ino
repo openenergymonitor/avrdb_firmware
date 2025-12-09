@@ -16,9 +16,10 @@
   v2.0.2: Change default phase allocation to 1-2-3 1-2-3
   v2.1.0: Combined single and three phase firmware for emonTx4/5 & emonPi2
   v2.1.1: Fixed channel allocation bug in this firmware when reading the EEPROM saved last energy values
+  v2.2.0: Default radio frequency set to 433.92MHz
 
 */
-const char *firmware_version = {"2.1.1\n\r"};
+const char *firmware_version = {"2.2.0\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -136,7 +137,7 @@ PayloadTX emon;
 // The radio module on the emonPi2 is handled by the Raspberry Pi directly (hence it is turned off here)
 struct
 {
-  byte RF_freq = RF69_433MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
+  byte RF_freq = RF69_433_92MHZ; // Frequency of radio module can be RFM_433MHZ (standard hardware), RFM_868MHZ or RFM_915MHZ.
   byte networkGroup = 210;    // wireless network group, must be the same as receiver. OEM default is 210
   byte nodeID = 27;           // node ID.
 #ifdef EMONPI2
