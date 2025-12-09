@@ -620,7 +620,7 @@ void init_radio() {
 #endif
 #endif
 
-    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
+    rf.initialize(EEProm.RF_freq, EEProm.nodeID, EEProm.networkGroup);
     rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
     delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
   }
