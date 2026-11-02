@@ -24,7 +24,7 @@ const char *firmware_version = {"1.3.0\n\r"};
 
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
-#define EMONTX5
+#define EMONTX4
 
 // 2. Set number of voltage channels (1 for single phase, 3 for three phase)
 #define NUM_V_CHANNELS 1
