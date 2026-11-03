@@ -54,13 +54,19 @@ const char *firmware_version = {"1.7.1\n\r"};
 // Configuration
 // ------------------------------------------------------------------------
 
+// Settings in this section can be overridden with build flags, see platformio.ini
+
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
+#if !defined(EMONTX4) && !defined(EMONTX5) && !defined(EMONPI2)
 #define EMONTX5
+#endif
 
 // 2. Set radio format
 // Options: RFM69_JEELIB_CLASSIC, RFM69_JEELIB_NATIVE, RFM69_LOW_POWER_LABS
+#if !defined(RFM69_JEELIB_CLASSIC) && !defined(RFM69_JEELIB_NATIVE) && !defined(RFM69_LOW_POWER_LABS)
 #define RFM69_LOW_POWER_LABS
+#endif
 
 // 4. Set number of current channels (this should always be 6)
 #define NUM_I_CHANNELS 6
@@ -72,7 +78,9 @@ const char *firmware_version = {"1.7.1\n\r"};
 
 // 6. Set pulse counting pin
 // Options: 1 = pulse on digital (default emonTx4), 2 = pulse on digital, 3 = pulse on analog (default emonPi2 & emonTx5)
+#ifndef PULSE_PIN
 #define PULSE_PIN 3
+#endif
 
 // 6. Enable analog reading (disabled by default)
 // IF ENABLED CHANGE NUM_I_CHANNELS = 5
@@ -115,6 +123,8 @@ SSD1306AsciiWire oled;
 #else
 // Minimal radio library that supports both original JeeLib format and later native format
 #include "RFM69_JeeLib.h"
+// RFM69_JeeLib ignores the band setting (fixed at 434 MHz), define so the config compiles
+#define RF69_433_92MHZ 49
 #endif
 RFM69 rf;
 

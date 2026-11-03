@@ -46,3 +46,15 @@ EmonLibDB based continuous monitoring firmware for the EmonTx4, EmonPi2 and Emon
 - emonPi2 OLED starting message
 
 *DS18B20 temperature sensing and serial configuration is not supported.*
+
+## Building
+
+All pre-compiled firmware variants can be built with [PlatformIO](https://platformio.org/):
+
+    ./build.sh                     # build everything into compiled/
+    ./build.sh emon_DB_12CT        # build one firmware
+    ./build.sh -o /tmp/hex         # write hex files somewhere else
+
+Each variant is an `[env:...]` in the firmware's `platformio.ini` that overrides the configuration `#define`s at the top of the `.ino` with build flags. The env name becomes the hex file name, with the version taken from `firmware_version`, e.g. `compiled/emonTx4/emonTx4_DB_12CT_1phase_LPL_v1_3_1.ino.hex`. To add a variant, add an env.
+
+For development, `pio run -t upload` in a firmware directory builds and uploads using the settings in the `.ino` source.

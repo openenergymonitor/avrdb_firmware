@@ -23,12 +23,18 @@ const char *firmware_version = {"1.3.1\n\r"};
 // Configuration
 // ------------------------------------------------------------------------
 
+// Settings in this section can be overridden with build flags, see platformio.ini
+
 // 1. Set hardware variant
 // Options: EMONTX4, EMONTX5, EMONPI2
+#if !defined(EMONTX4) && !defined(EMONTX5) && !defined(EMONPI2)
 #define EMONTX4
+#endif
 
 // 2. Set number of voltage channels (1 for single phase, 3 for three phase)
+#ifndef NUM_V_CHANNELS
 #define NUM_V_CHANNELS 1
+#endif
 
 // 3. Set number of current channels (this should always be 12)
 #define NUM_I_CHANNELS 12
@@ -38,7 +44,9 @@ const char *firmware_version = {"1.3.1\n\r"};
 
 // 5. Set pulse counting pin
 // Options: 1 = pulse on digital, 2 = pulse on digital, 3 = pulse on analog (default)
+#ifndef PULSE_PIN
 #define PULSE_PIN 1
+#endif
 
 // ------------------------------------------------------------------------
 
