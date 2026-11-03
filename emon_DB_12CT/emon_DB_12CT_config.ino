@@ -24,7 +24,7 @@ const PROGMEM char helpText1[] =
 #ifndef EMONPI2
 "w<x>\t\t- turn RFM Wireless data off: x = 0 or on: x = 1\n"
 #endif
-"b<n>\t\t- set r.f. band n = a single numeral: 4 = 433MHz, 8 = 868MHz, 9 = 915MHz (may require hardware change)\n"
+"b<n>\t\t- set r.f. band n = a single numeral: 4 = 433MHz, 49 = 433.92MHz, 8 = 868MHz, 9 = 915MHz (may require hardware change)\n"
 "p<nn>\t\t- set the r.f. power. nn - an integer 0 - 31 representing -18 dBm to +13 dBm. Default: 25 (+7 dBm)\n"
 "g<nnn>\t- set Network Group  nnn - an integer (OEM default = 210)\n"
 "n<nn>\t\t- set node ID n= an integer (standard node ids are 1..60)\n"
@@ -81,6 +81,7 @@ void print_radio_setting() {
   if (EEProm.rf_on) {
     Serial.print(F("RF = on, rfBand = ")); 
     Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
+                 EEProm.RF_freq == RF69_433_92MHZ ? 433.92 :
                  EEProm.RF_freq == RF69_868MHZ ? 868 :
                  EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
     Serial.print(F(" MHz, rfGroup = ")); Serial.print(EEProm.networkGroup);
@@ -178,12 +179,13 @@ void handle_conf(char *input, byte len) {
   char *ptr;
   
   switch (input[0]) {
-    case 'b':  // set band: 4 = 433, 8 = 868, 9 = 915
-      if (len==2) {
+    case 'b':  // set band: 4 = 433, 49 = 433.92, 8 = 868, 9 = 915
+      if (len==2 || len==3) {
         EEProm.RF_freq = bandToFreq(atoi(input+1));
 
         Serial.print(F("rfBand = ")); 
-        Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 : 
+        Serial.print(EEProm.RF_freq == RF69_433MHZ ? 433 :
+                     EEProm.RF_freq == RF69_433_92MHZ ? 433.92 : 
                      EEProm.RF_freq == RF69_868MHZ ? 868 :
                      EEProm.RF_freq == RF69_915MHZ ? 915 : 0);
         Serial.println(F(" MHz"));
@@ -469,7 +471,7 @@ void getSettings(void)
 
 
 static byte bandToFreq (byte band) {
-  return band == 4 ? RF69_433MHZ : band == 8 ? RF69_868MHZ : band == 9 ? RF69_915MHZ : 0;
+  return band == 4 ? RF69_433MHZ : band == 49 ? RF69_433_92MHZ : band == 8 ? RF69_868MHZ : band == 9 ? RF69_915MHZ : 0;
 }
 
 

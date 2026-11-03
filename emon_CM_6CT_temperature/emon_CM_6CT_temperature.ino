@@ -31,9 +31,10 @@
   v1.6.2: Fix c1 Irms and PF channel allocation for serial print
   v1.6.3: Option to enable analog input as simple digital pin
   v1.7.0: Default radio frequency set to 433.92MHz
+  v1.7.1: Fix radio frequency hardcoded to 433MHz, now uses EEPROM setting. Add 433.92MHz to serial config
 
 */
-const char *firmware_version = {"1.7.0\n\r"};
+const char *firmware_version = {"1.7.1\n\r"};
 /*
 
   emonhub.conf node decoder
@@ -771,7 +772,7 @@ void init_radio() {
 #endif
 #endif
 
-    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
+    rf.initialize(EEProm.RF_freq, EEProm.nodeID, EEProm.networkGroup);
     rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
     delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
   }

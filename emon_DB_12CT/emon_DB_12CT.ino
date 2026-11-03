@@ -13,10 +13,11 @@ The first packet contains values pertaining to CTs 1-6, the second packet to CTs
   v1.1.0: Combined emonTx4, emonTx5 and emonPi2 firmware
   v1.2.0: Serial configuration
   v1.3.0: Default radio frequency set to 433.92MHz
+  v1.3.1: Fix radio frequency hardcoded to 433MHz, now uses EEPROM setting. Add 433.92MHz to serial config
 
 */
 
-const char *firmware_version = {"1.3.0\n\r"};
+const char *firmware_version = {"1.3.1\n\r"};
 
 // ------------------------------------------------------------------------
 // Configuration
@@ -529,7 +530,7 @@ void init_radio() {
     rf.setPins(PIN_PA7, PIN_PA4, PIN_PA5, PIN_PA6);
 #endif
 
-    rf.initialize(RF69_433MHZ, EEProm.nodeID, EEProm.networkGroup);
+    rf.initialize(EEProm.RF_freq, EEProm.nodeID, EEProm.networkGroup);
     rf.encrypt("89txbe4p8aik5kt3");    // ignored if jeelib classic
     delay(random(EEProm.nodeID * 20)); // try to avoid r.f. collisions at start-up
   }
